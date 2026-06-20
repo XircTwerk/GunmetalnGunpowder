@@ -13,4 +13,5 @@ dependencies {
 
     compileOnly "mod.azure.azurelib:azurelib-common-$rootProject.minecraft_version:$rootProject.azurelib_version"
     modImplementation "dev.kosmx.player-anim:player-animation-lib:$rootProject.player_animator_version"
+    modImplementation "dev.kosmx.player-anim:anim-core:$rootProject.player_animator_version"
 }

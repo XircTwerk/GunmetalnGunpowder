@@ -1,0 +1,11 @@
+{
+  "entity.gunmetal.bullet": "Bullet",
+  "item.gunmetal.beretta": "Beretta",
+  "item.gunmetal.bullet": "Bullet",
+  "item.gunmetal.placeholder_gun": "Placeholder Gun",
+  "gunmetal.bullet.caliber": "Caliber:",
+  "tooltip.gunmetal.gun.ammo": "Ammo:",
+  "tooltip.gunmetal.gun.fire": "Right-click to fire.",
+  "tooltip.gunmetal.gun.reload": "Sneak right-click to reload.",
+  "tooltip.gunmetal.gun.reloading": "Reloading..."
+}

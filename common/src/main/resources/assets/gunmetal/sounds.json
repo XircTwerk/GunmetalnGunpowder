@@ -1,0 +1,34 @@
+{
+  "bulletricochet": {
+    "sounds": [
+      {
+        "name": "minecraft:block.metal.hit",
+        "type": "event"
+      }
+    ]
+  },
+  "bulletpenetrate": {
+    "sounds": [
+      {
+        "name": "minecraft:block.metal.break",
+        "type": "event"
+      }
+    ]
+  },
+  "reload": {
+    "sounds": [
+      {
+        "name": "minecraft:item.crossbow.loading_middle",
+        "type": "event"
+      }
+    ]
+  },
+  "revolver_fire": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.firework_rocket.blast",
+        "type": "event"
+      }
+    ]
+  }
+}
