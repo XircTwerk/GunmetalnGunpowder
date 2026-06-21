@@ -36,8 +36,8 @@ public final class GunStatsDefaults {
             1,
             4,
             6,
-            30,
-            30);
+            34,
+            34);
 
     private GunStatsDefaults() {
     }

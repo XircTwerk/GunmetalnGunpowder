@@ -263,7 +263,7 @@ public abstract class AbstractGunItem extends Item {
         if (!canFire(user, itemStack)) {
             return InteractionResultHolder.fail(itemStack);
         }
-        markAnimation(itemStack, fireAnimation());
+        markAnimation(itemStack, fireAnimation(itemStack, user));
         if (!world.isClientSide) {
             user.getCooldowns().addCooldown(this, inputCooldownTicks());
             fire(itemStack, world, user);
@@ -287,11 +287,12 @@ public abstract class AbstractGunItem extends Item {
             return InteractionResultHolder.fail(itemStack);
         }
 
-        markAnimation(itemStack, reloadAnimation());
+        int reloadTicks = reloadDurationTicks(itemStack);
+        markAnimation(itemStack, reloadAnimation(itemStack));
         if (!world.isClientSide) {
             data.putBoolean(RELOADING_ID, true);
-            user.getCooldowns().addCooldown(this, reloadCooldownTicks());
-            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadDurationTicks()));
+            user.getCooldowns().addCooldown(this, reloadTicks);
+            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadTicks));
             world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.5f, 1.0f);
         }
 
@@ -322,7 +323,7 @@ public abstract class AbstractGunItem extends Item {
             return true;
         }
 
-        gun.markAnimation(gunStack, gun.fireAnimation());
+        gun.markAnimation(gunStack, gun.fireAnimation(gunStack, player));
         if (!world.isClientSide) {
             player.getCooldowns().addCooldown(gun, gun.inputCooldownTicks());
             gun.fire(gunStack, world, player);
@@ -335,8 +336,20 @@ public abstract class AbstractGunItem extends Item {
         return "fire";
     }
 
+    protected String fireAnimation(ItemStack stack, Player player) {
+        return fireAnimation();
+    }
+
     protected String reloadAnimation() {
         return "reload";
+    }
+
+    protected String reloadAnimation(ItemStack stack) {
+        return reloadAnimation();
+    }
+
+    protected int reloadDurationTicks(ItemStack stack) {
+        return reloadDurationTicks();
     }
 
     protected void markAnimation(ItemStack stack, String animation) {

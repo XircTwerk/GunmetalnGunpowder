@@ -9,8 +9,8 @@
   "pellets_per_barrel": 1,
   "range": 60.0,
   "refire_cooldown_ticks": 6,
-  "reload_cooldown_ticks": 30,
-  "reload_duration_ticks": 30,
+  "reload_cooldown_ticks": 34,
+  "reload_duration_ticks": 34,
   "spread": 0.0,
   "stun_ticks": 1
 }

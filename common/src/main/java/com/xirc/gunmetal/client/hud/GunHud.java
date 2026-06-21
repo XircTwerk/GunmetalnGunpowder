@@ -19,6 +19,11 @@ public final class GunHud {
     private static final int WIDTH = 136;
     private static final int HEIGHT = 52;
     private static final int PADDING = 5;
+    private static final int HOTBAR_HALF_WIDTH = 91;
+    private static final int HOTBAR_GAP = 8;
+    private static final int SCREEN_MARGIN = 1;
+    private static final int HUD_RIGHT_OFFSET = 10;
+    private static final int HUD_DOWN_OFFSET = 7;
     private static final int AMMO_WIDTH = 78;
     private static final float STATE_SCALE = 0.75f;
 
@@ -52,8 +57,9 @@ public final class GunHud {
             return;
         }
 
-        int x = graphics.guiWidth() - WIDTH - 6;
-        int y = graphics.guiHeight() - HEIGHT - 8;
+        int x = Math.min(graphics.guiWidth() - WIDTH - SCREEN_MARGIN,
+                graphics.guiWidth() / 2 + HOTBAR_HALF_WIDTH + HOTBAR_GAP + HUD_RIGHT_OFFSET);
+        int y = graphics.guiHeight() - HEIGHT - SCREEN_MARGIN + HUD_DOWN_OFFSET;
 
         drawPreview(graphics, stack, x + PADDING + 2, y + PADDING);
         drawDurability(graphics, stack, x + PADDING + 1, y + 39, 34, 5);

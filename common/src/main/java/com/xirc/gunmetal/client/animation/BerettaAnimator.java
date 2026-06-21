@@ -44,7 +44,7 @@ public class BerettaAnimator extends AzItemAnimator {
             lastSequence = sequence;
             String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
             if (!animation.isEmpty()) {
-                dispatch(animation, AzPlayBehaviors.PLAY_ONCE);
+                dispatch(animation, playBehavior(animation));
                 markEffectWindow(animation);
             }
         }
@@ -72,7 +72,11 @@ public class BerettaAnimator extends AzItemAnimator {
                 .forEach(action -> action.handle(AzDispatchSide.CLIENT, this));
     }
 
+    private static AzPlayBehavior playBehavior(String animation) {
+        return "fire_final".equals(animation) ? AzPlayBehaviors.HOLD_ON_LAST_FRAME : AzPlayBehaviors.PLAY_ONCE;
+    }
+
     private void markEffectWindow(String animation) {
-        fireEffectEndsAt = "fire".equals(animation) ? System.nanoTime() + 250_000_000L : 0L;
+        fireEffectEndsAt = animation.startsWith("fire") ? System.nanoTime() + 250_000_000L : 0L;
     }
 }

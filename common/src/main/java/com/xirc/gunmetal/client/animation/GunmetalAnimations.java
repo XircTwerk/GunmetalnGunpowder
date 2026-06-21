@@ -36,7 +36,8 @@ public final class GunmetalAnimations {
     private static final ResourceLocation CONTROLLER_ID = Gunmetal.id("animation_controller");
     private static final FirstPersonConfiguration FIRST_PERSON_CONFIG = new FirstPersonConfiguration(true, true, true, true);
     private static final int FIRE_ANIMATION_TICKS = 6;
-    private static final int RELOAD_ANIMATION_TICKS = 30;
+    private static final int RELOAD_EMPTY_ANIMATION_TICKS = 17;
+    private static final int DELOAD_ANIMATION_TICKS = 34;
     private static final float ARM_HOLD_ROTATION = -1.5708f;
     private static final float AIM_DOWN_BIAS = 0.22f;
     private static final float MAX_SIDE_AIM = 75.0f;
@@ -98,13 +99,13 @@ public final class GunmetalAnimations {
                 lastMainHandSequence = sequence;
 
                 String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
-                if ("fire".equals(animation)) {
+                if (isFireAnimation(animation)) {
                     activeAnimation = animation;
                     animationTicks = FIRE_ANIMATION_TICKS;
                     stopPlayerAnimation(player);
-                } else if ("reload".equals(animation)) {
+                } else if (isReloadAnimation(animation)) {
                     activeAnimation = animation;
-                    animationTicks = RELOAD_ANIMATION_TICKS;
+                    animationTicks = reloadAnimationTicks(animation);
                     stopPlayerAnimation(player);
                     playPlayerAnimation(player, animation);
                 }
@@ -123,7 +124,7 @@ public final class GunmetalAnimations {
             if (player == minecraft.player && minecraft.options.getCameraType().isFirstPerson()) {
                 return Optional.empty();
             }
-            if ("reload".equals(activeAnimation) && animationTicks > 0) {
+            if (isReloadAnimation(activeAnimation) && animationTicks > 0) {
                 return Optional.empty();
             }
             if ("rightArm".equals(partName) || "right_arm".equals(partName)) {
@@ -164,7 +165,8 @@ public final class GunmetalAnimations {
         }
 
         loadLocalAnimations();
-        return LOCAL_ANIMATIONS.get(animationName);
+        animation = LOCAL_ANIMATIONS.get(animationName);
+        return animation != null ? animation : LOCAL_ANIMATIONS.get(playerAnimationFallback(animationName));
     }
 
     private static void loadLocalAnimations() {
@@ -197,7 +199,7 @@ public final class GunmetalAnimations {
             if (animationTicks > 0) {
                 return;
             }
-            if ("reload".equals(activeAnimation)) {
+            if (isReloadAnimation(activeAnimation)) {
                 stopPlayerAnimation(player);
             }
             activeAnimation = "";
@@ -207,7 +209,7 @@ public final class GunmetalAnimations {
     }
 
     private static float fireRecoil() {
-        if (!"fire".equals(activeAnimation) || animationTicks <= 0) {
+        if (!isFireAnimation(activeAnimation) || animationTicks <= 0) {
             return 0.0f;
         }
         float age = FIRE_ANIMATION_TICKS - animationTicks;
@@ -268,7 +270,7 @@ public final class GunmetalAnimations {
             if (isTriggeredActive()) {
                 String partName = animationPartName(modelName);
                 Vec3f transform = triggered.get3DTransform(partName, type, tickDelta, value0);
-                if ("fire".equals(triggeredName)
+                if (isFireAnimation(triggeredName)
                         && "rightArm".equals(partName)
                         && type == TransformType.ROTATION) {
                     return new Vec3f(transform.getX() - ARM_HOLD_ROTATION, transform.getY(), transform.getZ());
@@ -294,7 +296,7 @@ public final class GunmetalAnimations {
 
         @Override
         public FirstPersonMode getFirstPersonMode(float tickDelta) {
-            if ("reload".equals(triggeredName) && isTriggeredActive()) {
+            if (isReloadAnimation(triggeredName) && isTriggeredActive()) {
                 return FirstPersonMode.THIRD_PERSON_MODEL;
             }
             return FirstPersonMode.NONE;
@@ -312,5 +314,21 @@ public final class GunmetalAnimations {
                 default -> modelName;
             };
         }
+    }
+
+    private static boolean isFireAnimation(String animation) {
+        return "fire".equals(animation) || "fire_final".equals(animation);
+    }
+
+    private static boolean isReloadAnimation(String animation) {
+        return "reload".equals(animation) || "reload_empty".equals(animation) || "deload".equals(animation);
+    }
+
+    private static int reloadAnimationTicks(String animation) {
+        return "deload".equals(animation) ? DELOAD_ANIMATION_TICKS : RELOAD_EMPTY_ANIMATION_TICKS;
+    }
+
+    private static String playerAnimationFallback(String animation) {
+        return isReloadAnimation(animation) ? "reload" : animation;
     }
 }
