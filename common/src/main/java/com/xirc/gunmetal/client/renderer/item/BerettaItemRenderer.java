@@ -21,7 +21,7 @@ import java.util.UUID;
 public class BerettaItemRenderer extends AzItemRenderer {
     private static final Set<String> EFFECT_BONES = Set.of("fire", "pressure");
     private static final ResourceLocation EFFECTS_TEXTURE = Gunmetal.id("textures/effects.png");
-    private static final RenderType EFFECTS_RENDER_TYPE = RenderType.entityTranslucent(EFFECTS_TEXTURE);
+    private static final RenderType EFFECTS_RENDER_TYPE = RenderType.entityTranslucentEmissive(EFFECTS_TEXTURE);
     private static final DisplayPose DEFAULT_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
 
     // Tweak these values when adjusting how the Beretta sits in each view.

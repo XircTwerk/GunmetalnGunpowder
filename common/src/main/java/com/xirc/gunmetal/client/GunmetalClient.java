@@ -9,7 +9,15 @@ public final class GunmetalClient {
     }
 
     public static void init() {
-        GunmetalKeyMappings.init();
+        init(true);
+    }
+
+    public static void init(boolean registerKeyMappings) {
+        if (registerKeyMappings) {
+            GunmetalKeyMappings.init();
+        } else {
+            GunmetalKeyMappings.initTickEvents();
+        }
         GunmetalItemRenderers.register();
         GunmetalAnimations.init();
     }

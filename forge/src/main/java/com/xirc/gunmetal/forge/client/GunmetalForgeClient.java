@@ -2,10 +2,12 @@ package com.xirc.gunmetal.forge.client;
 
 import com.xirc.gunmetal.Gunmetal;
 import com.xirc.gunmetal.client.GunmetalClient;
+import com.xirc.gunmetal.client.input.GunmetalKeyMappings;
 import com.xirc.gunmetal.client.renderer.entity.BulletRenderer;
 import com.xirc.gunmetal.registry.GunmetalEntityTypes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,7 +23,13 @@ public final class GunmetalForgeClient {
     }
 
     @SubscribeEvent
+    public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(GunmetalKeyMappings.RELOAD);
+        event.register(GunmetalKeyMappings.INTERACT);
+    }
+
+    @SubscribeEvent
     public static void setupClient(FMLClientSetupEvent event) {
-        event.enqueueWork(GunmetalClient::init);
+        event.enqueueWork(() -> GunmetalClient.init(false));
     }
 }

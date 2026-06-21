@@ -16,6 +16,8 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public interface GunmetalKeyMappings {
+    boolean[] TICK_EVENTS_REGISTERED = {false};
+
     KeyMapping RELOAD = new KeyMapping(
             "key.gunmetal.reload",
             GLFW.GLFW_KEY_R,
@@ -30,6 +32,14 @@ public interface GunmetalKeyMappings {
     static void init() {
         KeyMappingRegistry.register(RELOAD);
         KeyMappingRegistry.register(INTERACT);
+        initTickEvents();
+    }
+
+    static void initTickEvents() {
+        if (TICK_EVENTS_REGISTERED[0]) {
+            return;
+        }
+        TICK_EVENTS_REGISTERED[0] = true;
         ClientTickEvent.CLIENT_POST.register(GunmetalKeyMappings::tick);
     }
 

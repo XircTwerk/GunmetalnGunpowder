@@ -56,6 +56,6 @@
     }
   },
   "textures": {
-    "particle": "default"
+    "particle": "minecraft:item/iron_ingot"
   }
 }
