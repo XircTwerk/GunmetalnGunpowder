@@ -1,6 +1,9 @@
 {
   "entity.gunmetal.bullet": "Bullet",
   "itemgroup.gunmetal.main": "Gunmetal N' Gunpowder",
+  "key.categories.gunmetal": "Gunmetal N' Gunpowder",
+  "key.gunmetal.interact": "Interact",
+  "key.gunmetal.reload": "Reload",
   "item.gunmetal.beretta": "Beretta",
   "item.gunmetal.bullet": "Bullet",
   "item.gunmetal.placeholder_gun": "Placeholder Gun",

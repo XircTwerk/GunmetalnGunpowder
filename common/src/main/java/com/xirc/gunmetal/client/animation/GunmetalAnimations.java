@@ -40,9 +40,11 @@ public final class GunmetalAnimations {
     private static final float ARM_HOLD_ROTATION = -1.5708f;
     private static final float AIM_DOWN_BIAS = 0.22f;
     private static final float MAX_SIDE_AIM = 75.0f;
+    private static final float SIDE_AIM_SMOOTHING = 0.35f;
 
     private static final Map<String, KeyframeAnimation> LOCAL_ANIMATIONS = new HashMap<>();
     private static final Map<AbstractClientPlayer, GunAnimation> PLAYER_ANIMATIONS = new WeakHashMap<>();
+    private static final Map<AbstractClientPlayer, Float> SIDE_AIM = new WeakHashMap<>();
     private static long lastMainHandSequence = Long.MIN_VALUE;
     private static String activeAnimation = "";
     private static int animationTicks;
@@ -79,9 +81,11 @@ public final class GunmetalAnimations {
                 lastMainHandSequence = Long.MIN_VALUE;
                 activeAnimation = "";
                 animationTicks = 0;
+                SIDE_AIM.remove(player);
                 stopPlayerAnimation(player);
                 return;
             }
+            updateSideAim(player);
 
             long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
             if (lastMainHandSequence == Long.MIN_VALUE) {
@@ -97,12 +101,10 @@ public final class GunmetalAnimations {
                 if ("fire".equals(animation)) {
                     activeAnimation = animation;
                     animationTicks = FIRE_ANIMATION_TICKS;
-                    BerettaAnimator.request(animation);
                     stopPlayerAnimation(player);
                 } else if ("reload".equals(animation)) {
                     activeAnimation = animation;
                     animationTicks = RELOAD_ANIMATION_TICKS;
-                    BerettaAnimator.request(animation);
                     stopPlayerAnimation(player);
                     playPlayerAnimation(player, animation);
                 }
@@ -126,13 +128,23 @@ public final class GunmetalAnimations {
             }
             if ("rightArm".equals(partName) || "right_arm".equals(partName)) {
                 float pitchAim = AIM_DOWN_BIAS + (float) Math.toRadians(player.getXRot());
-                float sideAim = (float) Math.toRadians(Mth.clamp(Mth.wrapDegrees(player.getYHeadRot() - player.yBodyRot), -MAX_SIDE_AIM, MAX_SIDE_AIM));
+                float sideAim = SIDE_AIM.computeIfAbsent(player, GunmetalAnimations::targetSideAim);
                 return Optional.of(new AdjustmentModifier.PartModifier(
                         new Vec3f(ARM_HOLD_ROTATION + pitchAim + fireRecoil(), sideAim, 0.0f),
                         new Vec3f(0.0f, 0.0f, 0.0f)));
             }
             return Optional.empty();
         });
+    }
+
+    private static void updateSideAim(AbstractClientPlayer player) {
+        float target = targetSideAim(player);
+        float current = SIDE_AIM.getOrDefault(player, target);
+        SIDE_AIM.put(player, current + (target - current) * SIDE_AIM_SMOOTHING);
+    }
+
+    private static float targetSideAim(AbstractClientPlayer player) {
+        return (float) Math.toRadians(Mth.clamp(Mth.wrapDegrees(player.getYHeadRot() - player.yBodyRot), -MAX_SIDE_AIM, MAX_SIDE_AIM));
     }
 
     private static void playPlayerAnimation(AbstractClientPlayer player, String animationName) {

@@ -165,19 +165,20 @@ public abstract class AbstractGunItem extends Item {
     /**
      * Cooldown shown while reload input is active, measured in ticks.
      * <p>
-     * This is applied when reload begins and again after each loaded round if more
-     * rounds can still be loaded.
+     * This is applied when reload begins. It should usually match the weapon's
+     * reload duration so the player cannot shoot before the reload finishes.
      */
     protected int reloadCooldownTicks() {
         return stats().reloadCooldownTicks();
     }
 
     /**
-     * Delay between individual rounds being loaded, measured in ticks.
+     * Full reload duration for this weapon, measured in ticks.
      * <p>
      * The reload queue waits this long before calling {@link #finishReload(ItemStack, Level, LivingEntity)}.
+     * The actual ammo is committed all at once when that timer ends.
      */
-    protected int reloadStepTicks() {
+    protected int reloadDurationTicks() {
         return stats().reloadStepTicks();
     }
 
@@ -233,17 +234,21 @@ public abstract class AbstractGunItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
-        ItemStack itemStack = user.getItemInHand(hand);
+        return InteractionResultHolder.fail(user.getItemInHand(hand));
+    }
 
+    public boolean tryShoot(Player user, ItemStack itemStack) {
         if (user.isSpectator()) {
-            return InteractionResultHolder.fail(itemStack);
+            return false;
         }
+        return fireFromUse(user.level(), user, itemStack).getResult().consumesAction();
+    }
 
-        if (!user.isShiftKeyDown()) {
-            return fireFromUse(world, user, itemStack);
+    public boolean tryReload(Player user, ItemStack itemStack) {
+        if (user.isSpectator()) {
+            return false;
         }
-
-        return reloadFromUse(world, user, itemStack);
+        return reloadFromUse(user.level(), user, itemStack).getResult().consumesAction();
     }
 
     private InteractionResultHolder<ItemStack> fireFromUse(Level world, Player user, ItemStack itemStack) {
@@ -278,7 +283,7 @@ public abstract class AbstractGunItem extends Item {
         if (!world.isClientSide) {
             data.putBoolean(RELOADING_ID, true);
             user.getCooldowns().addCooldown(this, reloadCooldownTicks());
-            PlaceholderGunReload.enqueue(new DimensionData(user, world.dimension(), reloadStepTicks()));
+            PlaceholderGunReload.enqueue(new DimensionData(user, world.dimension(), reloadDurationTicks()));
             world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.5f, 1.0f);
         }
 
@@ -381,21 +386,14 @@ public abstract class AbstractGunItem extends Item {
         }
 
         if (user instanceof Player player) {
-            if (consumeAmmoFromInventory(player)) {
-                data.putInt(SHOTS_ID, shots + 1);
+            int roundsNeeded = maxRounds() - shots;
+            int roundsLoaded = player.isCreative() ? roundsNeeded : consumeAmmoFromInventory(player, roundsNeeded);
+            if (roundsLoaded > 0) {
+                data.putInt(SHOTS_ID, shots + roundsLoaded);
                 world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.7f, 1.0f);
-
-                if (data.getInt(SHOTS_ID) < maxRounds() && hasAmmoInInventory(player)) {
-                    PlaceholderGunReload.enqueue(new DimensionData(user, world.dimension(), reloadStepTicks()));
-                    player.getCooldowns().addCooldown(this, reloadCooldownTicks());
-                } else {
-                    data.putBoolean(RELOADING_ID, false);
-                    player.getCooldowns().removeCooldown(this);
-                }
-            } else {
-                data.putBoolean(RELOADING_ID, false);
-                player.getCooldowns().removeCooldown(this);
             }
+            data.putBoolean(RELOADING_ID, false);
+            player.getCooldowns().removeCooldown(this);
         }
     }
 
@@ -403,17 +401,20 @@ public abstract class AbstractGunItem extends Item {
         return player.getInventory().contains(new ItemStack(ammoItem()));
     }
 
-    protected boolean consumeAmmoFromInventory(Player player) {
+    protected int consumeAmmoFromInventory(Player player, int amount) {
+        int consumed = 0;
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() == ammoItem()) {
-                if (!player.isCreative()) {
-                    stack.shrink(1);
+                int toConsume = Math.min(amount - consumed, stack.getCount());
+                stack.shrink(toConsume);
+                consumed += toConsume;
+                if (consumed >= amount) {
+                    return consumed;
                 }
-                return true;
             }
         }
-        return false;
+        return consumed;
     }
 
     @Override

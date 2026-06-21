@@ -16,12 +16,8 @@ public class BerettaAnimator extends AzItemAnimator {
     private static final ResourceLocation ANIMATION = Gunmetal.id("animations/beretta.animation.json");
     private static final String CONTROLLER = "gun";
 
-    public static volatile String requestedAnimation = "";
-    public static volatile long requestSequence;
-
     private AzAnimationController<ItemStack> controller;
     private long lastSequence = Long.MIN_VALUE;
-    private long lastConsumedRequest = requestSequence;
     private long fireEffectEndsAt;
     private boolean sequenceInitialized;
 
@@ -35,16 +31,6 @@ public class BerettaAnimator extends AzItemAnimator {
     public void setCustomAnimations(ItemStack stack, float partialTicks) {
         if (controller == null) {
             return;
-        }
-
-        long request = requestSequence;
-        if (request != lastConsumedRequest) {
-            lastConsumedRequest = request;
-            if (!requestedAnimation.isEmpty()) {
-                dispatch(requestedAnimation, AzPlayBehaviors.PLAY_ONCE);
-                markEffectWindow(requestedAnimation);
-                return;
-            }
         }
 
         long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
@@ -88,13 +74,5 @@ public class BerettaAnimator extends AzItemAnimator {
 
     private void markEffectWindow(String animation) {
         fireEffectEndsAt = "fire".equals(animation) ? System.nanoTime() + 250_000_000L : 0L;
-    }
-
-    public static void request(String animation) {
-        if (animation == null || animation.isEmpty()) {
-            return;
-        }
-        requestedAnimation = animation;
-        requestSequence++;
     }
 }
