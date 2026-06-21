@@ -1,5 +1,7 @@
 package com.xirc.gunmetal.common.item;
 
+import com.xirc.gunmetal.common.data.gun.GunStats;
+import com.xirc.gunmetal.common.data.gun.GunStatsManager;
 import com.xirc.gunmetal.common.entity.projectile.BulletProjectile;
 import com.xirc.gunmetal.common.system.hitscan.HitscanGunShot;
 import com.xirc.gunmetal.common.tickable.PlaceholderGunReload;
@@ -8,10 +10,9 @@ import com.xirc.gunmetal.registry.GunmetalItems;
 import com.xirc.gunmetal.registry.GunmetalSoundEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -39,13 +40,23 @@ public abstract class AbstractGunItem extends Item {
         super(settings);
     }
 
+    protected abstract ResourceLocation statsId();
+
+    protected abstract GunStats defaultStats();
+
+    protected GunStats stats() {
+        return GunStatsManager.get(statsId()).orElse(defaultStats());
+    }
+
     /**
      * Maximum ammo stored in this gun's item NBT.
      * <p>
      * This controls the ammo tooltip, durability-style ammo bar, default loaded ammo,
      * and when the reload queue stops loading more rounds.
      */
-    protected abstract int maxRounds();
+    protected int maxRounds() {
+        return stats().maxRounds();
+    }
 
     /**
      * Base damage dealt by each hitscan shot before range falloff is applied.
@@ -53,7 +64,9 @@ public abstract class AbstractGunItem extends Item {
      * The visual bullet entity is currently spawned with zero damage, so this value is
      * applied by {@link HitscanGunShot} instead of by the projectile.
      */
-    protected abstract float damage();
+    protected float damage() {
+        return stats().damage();
+    }
 
     /**
      * Maximum hitscan distance in blocks.
@@ -62,36 +75,63 @@ public abstract class AbstractGunItem extends Item {
      * a solid block clips the ray. Damage also falls from normal damage at 8 blocks
      * to zero damage at this distance.
      */
-    protected abstract float range();
+    protected float range() {
+        return stats().range();
+    }
 
     /**
      * Knockback strength applied to living targets hit by the hitscan shot.
      * <p>
      * Higher values push targets farther away from the shooter.
      */
-    protected abstract float knockback();
+    protected float knockback() {
+        return stats().knockback();
+    }
 
     /**
-     * Number of hitscan rays fired per shot.
+     * Number of barrel groups fired per shot.
      * <p>
-     * Use {@code 1} for a single bullet. Higher values act like multiple pellets and
-     * can hit multiple targets along slightly randomized rays.
+     * Total hitscan rays are {@code barrels() * pelletsPerBarrel()}.
      */
-    protected abstract int barrels();
+    protected int barrels() {
+        return stats().barrels();
+    }
+
+    /**
+     * Number of hitscan rays fired by each barrel group.
+     * <p>
+     * Use {@code 1} for a single bullet. Higher values act like pellets.
+     */
+    protected int pelletsPerBarrel() {
+        return stats().pelletsPerBarrel();
+    }
+
+    /**
+     * Random aim spread applied to each hitscan ray before normalizing.
+     * <p>
+     * Use {@code 0.0f} for a straight shot.
+     */
+    protected float spread() {
+        return stats().spread();
+    }
 
     /**
      * Bullet diameter used by the visual projectile, measured in millimeters.
      * <p>
      * This feeds the projectile mass calculation for penetration and ricochet behavior.
      */
-    protected abstract float caliber();
+    protected float caliber() {
+        return stats().caliber();
+    }
 
     /**
      * Bullet length used by the visual projectile, measured in millimeters.
      * <p>
      * Together with {@link #caliber()}, this feeds the projectile mass calculation.
      */
-    protected abstract float bulletLength();
+    protected float bulletLength() {
+        return stats().bulletLength();
+    }
 
     /**
      * Stun duration carried by the visual bullet projectile, measured in ticks.
@@ -99,14 +139,18 @@ public abstract class AbstractGunItem extends Item {
      * The current plain Minecraft implementation stores this value for future combat
      * effects, but does not yet apply a stun effect on hit.
      */
-    protected abstract int stunTicks();
+    protected int stunTicks() {
+        return stats().stunTicks();
+    }
 
     /**
      * Short cooldown added immediately when the player starts a fire input.
      * <p>
      * This prevents duplicate input handling before the main refire cooldown is applied.
      */
-    protected abstract int inputCooldownTicks();
+    protected int inputCooldownTicks() {
+        return stats().inputCooldownTicks();
+    }
 
     /**
      * Main cooldown after a successful shot, measured in ticks.
@@ -114,7 +158,9 @@ public abstract class AbstractGunItem extends Item {
      * While this cooldown is active, the gun cannot fire again. Minecraft runs at 20
      * ticks per second under normal conditions.
      */
-    protected abstract int refireCooldownTicks();
+    protected int refireCooldownTicks() {
+        return stats().refireCooldownTicks();
+    }
 
     /**
      * Cooldown shown while reload input is active, measured in ticks.
@@ -122,14 +168,18 @@ public abstract class AbstractGunItem extends Item {
      * This is applied when reload begins and again after each loaded round if more
      * rounds can still be loaded.
      */
-    protected abstract int reloadCooldownTicks();
+    protected int reloadCooldownTicks() {
+        return stats().reloadCooldownTicks();
+    }
 
     /**
      * Delay between individual rounds being loaded, measured in ticks.
      * <p>
      * The reload queue waits this long before calling {@link #finishReload(ItemStack, Level, LivingEntity)}.
      */
-    protected abstract int reloadStepTicks();
+    protected int reloadStepTicks() {
+        return stats().reloadStepTicks();
+    }
 
     /**
      * Sound played when this gun fires.
@@ -259,6 +309,7 @@ public abstract class AbstractGunItem extends Item {
             return true;
         }
 
+        gun.markAnimation(gunStack, gun.fireAnimation());
         if (!world.isClientSide) {
             player.getCooldowns().addCooldown(gun, gun.inputCooldownTicks());
             gun.fire(gunStack, world, player);
@@ -275,7 +326,7 @@ public abstract class AbstractGunItem extends Item {
         return "reload";
     }
 
-    private void markAnimation(ItemStack stack, String animation) {
+    protected void markAnimation(ItemStack stack, String animation) {
         if (animation == null || animation.isEmpty()) {
             return;
         }
@@ -307,19 +358,10 @@ public abstract class AbstractGunItem extends Item {
 
         world.playSound(null, user.getX(), user.getY(), user.getZ(), fireSound(), SoundSource.PLAYERS, 1f, 1f);
 
-        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels());
+        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread());
 
         BulletProjectile bullet = new BulletProjectile(world, user, caliber(), bulletLength(), stunTicks(), 0);
         bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 10, 0f);
-
-        if (world instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(
-                    ParticleTypes.CAMPFIRE_COSY_SMOKE,
-                    bullet.getX(), bullet.getY(), bullet.getZ(),
-                    5,
-                    0.1, 0.1, 0.1,
-                    0.02);
-        }
 
         world.addFreshEntity(bullet);
 

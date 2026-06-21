@@ -1,0 +1,16 @@
+{
+  "barrels": 1,
+  "bullet_length": 10.0,
+  "caliber": 9.0,
+  "damage": 5.0,
+  "input_cooldown_ticks": 10,
+  "knockback": 0.25,
+  "max_rounds": 6,
+  "pellets_per_barrel": 8,
+  "range": 80.0,
+  "refire_cooldown_ticks": 20,
+  "reload_cooldown_ticks": 60,
+  "reload_step_ticks": 10,
+  "spread": 0.3,
+  "stun_ticks": 2
+}

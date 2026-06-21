@@ -56,8 +56,7 @@ public class BerettaItemRenderer extends AzItemRenderer {
 
         boolean firing = false;
         if (getAnimator() instanceof BerettaAnimator gun) {
-            String animation = gun.currentAnimationName();
-            firing = "fire".equals(animation);
+            firing = gun.isFireEffectVisible();
         }
         final boolean visible = firing;
 
@@ -66,6 +65,7 @@ public class BerettaItemRenderer extends AzItemRenderer {
         }
         model.getBone("effects").ifPresent(bone -> {
             float scale = visible ? 1.0f : 0.0f;
+            bone.setHidden(!visible);
             bone.setScaleX(scale);
             bone.setScaleY(scale);
             bone.setScaleZ(scale);

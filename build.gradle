@@ -4,6 +4,29 @@ plugins {
     id 'com.gradleup.shadow' version '8.3.6' apply false
 }
 
+if (!rootProject.hasProperty('datagenChild')) {
+    tasks.register('runDatagenOnce', GradleBuild) {
+        group = 'build'
+        description = 'Runs datagen once before platform jars package generated resources.'
+        dir = rootDir
+        tasks = [':datagen:runDatagen']
+        startParameter.projectProperties =
+                (startParameter.projectProperties ?: [:]) + [datagenChild: 'true']
+    }
+
+    gradle.projectsEvaluated {
+        project(':common').tasks.named('processResources').configure {
+            mustRunAfter(rootProject.tasks.named('runDatagenOnce'))
+        }
+        project(':fabric').tasks.named('build').configure {
+            dependsOn(rootProject.tasks.named('runDatagenOnce'))
+        }
+        project(':forge').tasks.named('build').configure {
+            dependsOn(rootProject.tasks.named('runDatagenOnce'))
+        }
+    }
+}
+
 architectury {
     minecraft = project.minecraft_version
 }

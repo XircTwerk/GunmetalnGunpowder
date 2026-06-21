@@ -4,7 +4,6 @@ import com.xirc.gunmetal.registry.GunmetalEntityTypes;
 import com.xirc.gunmetal.registry.GunmetalSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -45,6 +44,7 @@ public class BulletProjectile extends AbstractArrow {
     public BulletProjectile(Level world, LivingEntity owner, float caliber, float length, int stunTicks, float damage) {
         super(GunmetalEntityTypes.BULLET.get(), owner, world);
 
+        setInvisible(true);
         setCaliber(caliber);
         this.stunTicks = stunTicks;
         this.damage = damage;
@@ -102,19 +102,14 @@ public class BulletProjectile extends AbstractArrow {
                 if (lowEnergy || !through) {
                     onHitBlock(blockHitResult);
                     level().gameEvent(GameEvent.PROJECTILE_LAND, blockPos, GameEvent.Context.of(this, blockState));
-
-                    spawnImpactParticles();
-
                     discard();
                 } else if (!level().isClientSide()) {
                     playServerSound(GunmetalSoundEvents.BULLET_PENETRATE.get(), position());
-                    spawnImpactParticles();
                 }
             } else {
                 setDeltaMovement(impactVec.add(normal).scale(0.5 / hardness));
                 if (!level().isClientSide()) {
                     playServerSound(GunmetalSoundEvents.BULLET_RICOCHET.get(), position());
-                    spawnImpactParticles();
                 }
             }
         }
@@ -138,7 +133,6 @@ public class BulletProjectile extends AbstractArrow {
                     living.hurt(thrown, damage);
                 }
                 playServerSound(GunmetalSoundEvents.BULLET_PENETRATE.get(), position());
-                spawnImpactParticles();
 
                 discard();
             }
@@ -151,22 +145,7 @@ public class BulletProjectile extends AbstractArrow {
     public void tick() {
         super.tick();
 
-        if (!level().isClientSide() && level() instanceof ServerLevel serverLevel && !inGround) {
-            Vec3 velocity = getDeltaMovement();
-            double distance = velocity.length();
-
-            if (distance > 0.1) {
-                Vec3 start = position().subtract(velocity);
-                Vec3 end = position();
-                int particleCount = Math.max(1, (int) (distance * 4));
-
-                for (int i = 0; i < particleCount; i++) {
-                    double t = (double) i / particleCount;
-                    Vec3 pos = start.lerp(end, t);
-                    serverLevel.sendParticles(ParticleTypes.SMOKE, pos.x, pos.y, pos.z, 1, 0.02, 0.02, 0.02, 0.0);
-                }
-            }
-        }
+        setInvisible(true);
     }
 
     @Override
@@ -188,12 +167,6 @@ public class BulletProjectile extends AbstractArrow {
     @Override
     protected ItemStack getPickupItem() {
         return ItemStack.EMPTY;
-    }
-
-    private void spawnImpactParticles() {
-        if (level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.CRIT, getX(), getY(), getZ(), 1, 0, 0, 0, 0);
-        }
     }
 
     private void playServerSound(SoundEvent sound, Vec3 pos) {

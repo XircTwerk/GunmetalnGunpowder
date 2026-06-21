@@ -8,20 +8,17 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 
-public final class GunmetalEntityTypes {
-    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Gunmetal.MOD_ID, Registries.ENTITY_TYPE);
+public interface GunmetalEntityTypes {
+    DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Gunmetal.MOD_ID, Registries.ENTITY_TYPE);
 
-    public static final RegistrySupplier<EntityType<BulletProjectile>> BULLET = ENTITY_TYPES.register("bullet",
+    RegistrySupplier<EntityType<BulletProjectile>> BULLET = ENTITY_TYPES.register("bullet",
             () -> EntityType.Builder.<BulletProjectile>of(BulletProjectile::new, MobCategory.MISC)
                     .sized(0.1f, 0.1f)
                     .clientTrackingRange(6)
                     .updateInterval(10)
                     .build("bullet"));
 
-    private GunmetalEntityTypes() {
-    }
-
-    public static void init() {
+    static void init() {
         ENTITY_TYPES.register();
     }
 }

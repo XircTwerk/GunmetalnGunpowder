@@ -1,67 +1,21 @@
 package com.xirc.gunmetal.common.item;
 
+import com.xirc.gunmetal.common.data.gun.GunStats;
+import com.xirc.gunmetal.common.data.gun.GunStatsDefaults;
+import net.minecraft.resources.ResourceLocation;
+
 public class PlaceholderGunItem extends AbstractGunItem {
     public PlaceholderGunItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    protected int maxRounds() {
-        return 6;
+    protected ResourceLocation statsId() {
+        return GunStatsDefaults.PLACEHOLDER_GUN_ID;
     }
 
     @Override
-    protected float damage() {
-        return 5.0f;
-    }
-
-    @Override
-    protected float range() {
-        return 80.0f;
-    }
-
-    @Override
-    protected float knockback() {
-        return 0.25f;
-    }
-
-    @Override
-    protected int barrels() {
-        return 1;
-    }
-
-    @Override
-    protected float caliber() {
-        return 9.0f;
-    }
-
-    @Override
-    protected float bulletLength() {
-        return 10.0f;
-    }
-
-    @Override
-    protected int stunTicks() {
-        return 2;
-    }
-
-    @Override
-    protected int inputCooldownTicks() {
-        return 10;
-    }
-
-    @Override
-    protected int refireCooldownTicks() {
-        return 20;
-    }
-
-    @Override
-    protected int reloadCooldownTicks() {
-        return 60;
-    }
-
-    @Override
-    protected int reloadStepTicks() {
-        return 10;
+    protected GunStats defaultStats() {
+        return GunStatsDefaults.PLACEHOLDER_GUN;
     }
 }

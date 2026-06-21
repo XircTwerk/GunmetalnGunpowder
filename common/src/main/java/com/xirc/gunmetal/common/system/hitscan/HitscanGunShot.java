@@ -1,7 +1,5 @@
 package com.xirc.gunmetal.common.system.hitscan;
 
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -16,8 +14,6 @@ import net.minecraft.world.phys.Vec3;
 public final class HitscanGunShot {
     public static final float CLOSE_DAMAGE_MULT = 3.0f;
     public static final double BASELINE_DISTANCE = 8.0;
-    private static final double SPREAD = 0.3;
-    private static final int PELLETS_PER_BARREL = 8;
 
     private HitscanGunShot() {
     }
@@ -32,22 +28,23 @@ public final class HitscanGunShot {
         return (float) (1.0 - t);
     }
 
-    public static void fire(LivingEntity user, float damage, float range, float knockback, int barrels) {
+    public static void fire(LivingEntity user, float damage, float range, float knockback, int barrels, int pelletsPerBarrel, float spread) {
         Level world = user.level();
-        float pelletDamage = damage / PELLETS_PER_BARREL;
-        int totalPellets = barrels * PELLETS_PER_BARREL;
+        int pellets = Math.max(1, pelletsPerBarrel);
+        float pelletDamage = damage / pellets;
+        int totalPellets = Math.max(1, barrels) * pellets;
         for (int i = 0; i < totalPellets; i++) {
-            fireRay(user, world, pelletDamage, range, knockback);
+            fireRay(user, world, pelletDamage, range, knockback, spread);
         }
     }
 
-    private static void fireRay(LivingEntity user, Level world, float pelletDamage, float range, float knockback) {
+    private static void fireRay(LivingEntity user, Level world, float pelletDamage, float range, float knockback, float spread) {
         Vec3 eye = user.getEyePosition();
         RandomSource random = user.getRandom();
         Vec3 look = user.getViewVector(1.0f).add(
-                (random.nextDouble() - 0.5) * SPREAD,
-                (random.nextDouble() - 0.5) * SPREAD,
-                (random.nextDouble() - 0.5) * SPREAD
+                (random.nextDouble() - 0.5) * spread,
+                (random.nextDouble() - 0.5) * spread,
+                (random.nextDouble() - 0.5) * spread
         ).normalize();
         Vec3 end = eye.add(look.scale(range));
 
@@ -74,19 +71,5 @@ public final class HitscanGunShot {
             }
         }
 
-        spawnTracer(world, eye, impact);
-    }
-
-    private static void spawnTracer(Level world, Vec3 start, Vec3 end) {
-        if (!(world instanceof ServerLevel sl)) return;
-        Vec3 dir = end.subtract(start);
-        double length = dir.length();
-        if (length < 0.01) return;
-        Vec3 step = dir.scale(1.0 / length);
-        for (double d = 1.0; d < length; d += 1.0) {
-            Vec3 p = start.add(step.scale(d));
-            sl.sendParticles(ParticleTypes.SMOKE, p.x, p.y, p.z, 1, 0.0, 0.0, 0.0, 0.0);
-        }
-        sl.sendParticles(ParticleTypes.CRIT, end.x, end.y, end.z, 4, 0.05, 0.05, 0.05, 0.0);
     }
 }

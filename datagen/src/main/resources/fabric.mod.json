@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "gunmetal_datagen",
+  "version": "${version}",
+  "name": "Gunmetal Datagen",
+  "description": "Data generation for Gunmetal N' Gunpowder.",
+  "license": "CC0-1.0",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.xirc.gunmetal.datagen.GunmetalDataGen"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.20.1",
+    "java": ">=17"
+  }
+}

@@ -13,12 +13,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class BerettaAnimator extends AzItemAnimator {
-    private static final ResourceLocation ANIMATION = Gunmetal.id("beretta.animation.json");
+    private static final ResourceLocation ANIMATION = Gunmetal.id("animations/beretta.animation.json");
     private static final String CONTROLLER = "gun";
+
+    public static volatile String requestedAnimation = "";
+    public static volatile long requestSequence;
 
     private AzAnimationController<ItemStack> controller;
     private long lastSequence = Long.MIN_VALUE;
-    private boolean idleDispatched;
+    private long lastConsumedRequest = requestSequence;
+    private long fireEffectEndsAt;
+    private boolean sequenceInitialized;
 
     @Override
     public void registerControllers(AzAnimationControllerContainer<ItemStack> container) {
@@ -32,22 +37,30 @@ public class BerettaAnimator extends AzItemAnimator {
             return;
         }
 
-        long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
-        if (sequence != lastSequence) {
-            lastSequence = sequence;
-            String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
-            if (!animation.isEmpty()) {
-                idleDispatched = false;
-                dispatch(animation, AzPlayBehaviors.PLAY_ONCE);
+        long request = requestSequence;
+        if (request != lastConsumedRequest) {
+            lastConsumedRequest = request;
+            if (!requestedAnimation.isEmpty()) {
+                dispatch(requestedAnimation, AzPlayBehaviors.PLAY_ONCE);
+                markEffectWindow(requestedAnimation);
                 return;
             }
         }
 
-        if (!idleDispatched
-                && !controller.stateMachine().isPlaying()
-                && !controller.stateMachine().isTransitioning()) {
-            idleDispatched = true;
-            dispatch("idle", AzPlayBehaviors.LOOP);
+        long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
+        if (!sequenceInitialized) {
+            sequenceInitialized = true;
+            lastSequence = sequence;
+            return;
+        }
+
+        if (sequence != lastSequence) {
+            lastSequence = sequence;
+            String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
+            if (!animation.isEmpty()) {
+                dispatch(animation, AzPlayBehaviors.PLAY_ONCE);
+                markEffectWindow(animation);
+            }
         }
     }
 
@@ -56,6 +69,10 @@ public class BerettaAnimator extends AzItemAnimator {
             return null;
         }
         return controller.currentAnimation().animation().name();
+    }
+
+    public boolean isFireEffectVisible() {
+        return System.nanoTime() < fireEffectEndsAt;
     }
 
     @Override
@@ -67,5 +84,17 @@ public class BerettaAnimator extends AzItemAnimator {
         AzCommand.create(CONTROLLER, animation, behavior)
                 .actions()
                 .forEach(action -> action.handle(AzDispatchSide.CLIENT, this));
+    }
+
+    private void markEffectWindow(String animation) {
+        fireEffectEndsAt = "fire".equals(animation) ? System.nanoTime() + 250_000_000L : 0L;
+    }
+
+    public static void request(String animation) {
+        if (animation == null || animation.isEmpty()) {
+            return;
+        }
+        requestedAnimation = animation;
+        requestSequence++;
     }
 }
