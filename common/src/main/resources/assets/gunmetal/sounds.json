@@ -30,5 +30,12 @@
         "type": "event"
       }
     ]
+  },
+  "beretta_m9_shot": {
+    "sounds": [
+      {
+        "name": "gunmetal:gun/beretta/fiveseven_fire_close"
+      }
+    ]
   }
 }

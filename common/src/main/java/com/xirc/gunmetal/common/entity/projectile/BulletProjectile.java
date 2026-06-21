@@ -1,7 +1,7 @@
 package com.xirc.gunmetal.common.entity.projectile;
 
 import com.xirc.gunmetal.registry.GunmetalEntityTypes;
-import com.xirc.gunmetal.registry.GunmetalSoundEvents;
+import com.xirc.gunmetal.registry.GunmetalSoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
@@ -50,7 +50,7 @@ public class BulletProjectile extends AbstractArrow {
         this.damage = damage;
         this.mass = (length * caliber * caliber * Mth.PI) * 0.000000013f;
 
-        setSoundEvent(GunmetalSoundEvents.BULLET_RICOCHET.get());
+        setSoundEvent(GunmetalSoundRegistry.BULLET_RICOCHET.get());
     }
 
     public void setCaliber(float cal) {
@@ -104,12 +104,12 @@ public class BulletProjectile extends AbstractArrow {
                     level().gameEvent(GameEvent.PROJECTILE_LAND, blockPos, GameEvent.Context.of(this, blockState));
                     discard();
                 } else if (!level().isClientSide()) {
-                    playServerSound(GunmetalSoundEvents.BULLET_PENETRATE.get(), position());
+                    playServerSound(GunmetalSoundRegistry.BULLET_PENETRATE.get(), position());
                 }
             } else {
                 setDeltaMovement(impactVec.add(normal).scale(0.5 / hardness));
                 if (!level().isClientSide()) {
-                    playServerSound(GunmetalSoundEvents.BULLET_RICOCHET.get(), position());
+                    playServerSound(GunmetalSoundRegistry.BULLET_RICOCHET.get(), position());
                 }
             }
         }
@@ -132,7 +132,7 @@ public class BulletProjectile extends AbstractArrow {
                     living.invulnerableTime = 0;
                     living.hurt(thrown, damage);
                 }
-                playServerSound(GunmetalSoundEvents.BULLET_PENETRATE.get(), position());
+                playServerSound(GunmetalSoundRegistry.BULLET_PENETRATE.get(), position());
 
                 discard();
             }

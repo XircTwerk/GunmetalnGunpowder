@@ -7,7 +7,7 @@ import com.xirc.gunmetal.common.system.hitscan.HitscanGunShot;
 import com.xirc.gunmetal.common.tickable.GunReloadQueue;
 import com.xirc.gunmetal.common.util.DimensionData;
 import com.xirc.gunmetal.registry.GunmetalItems;
-import com.xirc.gunmetal.registry.GunmetalSoundEvents;
+import com.xirc.gunmetal.registry.GunmetalSoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -191,14 +191,14 @@ public abstract class AbstractGunItem extends Item {
      * Sound played when this gun fires.
      */
     protected SoundEvent fireSound() {
-        return GunmetalSoundEvents.REVOLVER_FIRE.get();
+        return GunmetalSoundRegistry.REVOLVER_FIRE.get();
     }
 
     /**
      * Sound played when reload starts and when each round is loaded.
      */
     protected SoundEvent reloadSound() {
-        return GunmetalSoundEvents.LOAD.get();
+        return GunmetalSoundRegistry.LOAD.get();
     }
 
     /**
