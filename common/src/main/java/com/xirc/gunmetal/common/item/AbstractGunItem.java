@@ -58,6 +58,10 @@ public abstract class AbstractGunItem extends Item {
         return stats().maxRounds();
     }
 
+    public int getMaxRounds() {
+        return maxRounds();
+    }
+
     /**
      * Base damage dealt by each hitscan shot before range falloff is applied.
      * <p>
@@ -201,6 +205,10 @@ public abstract class AbstractGunItem extends Item {
      */
     protected Item ammoItem() {
         return GunmetalItems.BULLET.get();
+    }
+
+    public Item getAmmoItem() {
+        return ammoItem();
     }
 
     @Override
