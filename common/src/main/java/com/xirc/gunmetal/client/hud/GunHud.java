@@ -1,7 +1,6 @@
 package com.xirc.gunmetal.client.hud;
 
 import com.xirc.gunmetal.common.item.AbstractGunItem;
-import dev.architectury.event.events.client.ClientGuiEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,6 +22,7 @@ public final class GunHud {
     private static final int HOTBAR_GAP = 8;
     private static final int SCREEN_MARGIN = 1;
     private static final int HUD_RIGHT_OFFSET = 10;
+    private static final int HUD_LEFT_OFFSET = 34; // for offhand weapon
     private static final int HUD_DOWN_OFFSET = 7;
     private static final int AMMO_WIDTH = 78;
     private static final float STATE_SCALE = 0.75f;
@@ -36,43 +36,51 @@ public final class GunHud {
     private static final int BAR_BACK = 0xFF2B2B2B;
     private static final int BAR_BORDER = 0xFF050505;
     private static final int BAR_GOOD = 0xFF63D66E;
-    private static final int BAR_WARN = 0xFFE2C65F;
 
     private GunHud() {
     }
 
     public static void init() {
-        ClientGuiEvent.RENDER_HUD.register(GunHud::render);
     }
 
-    private static void render(GuiGraphics graphics, float tickDelta) {
+    public static void renderAboveToasts(GuiGraphics graphics) {
+        render(graphics);
+    }
+
+    private static void render(GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
         if (player == null || minecraft.options.hideGui) {
             return;
         }
 
-        ItemStack stack = gunStack(player);
-        if (!(stack.getItem() instanceof AbstractGunItem gun)) {
+        ItemStack mainHand = player.getMainHandItem();
+        ItemStack offHand = player.getOffhandItem();
+        int rightX = Math.min(graphics.guiWidth() - WIDTH - SCREEN_MARGIN,
+                graphics.guiWidth() / 2 + HOTBAR_HALF_WIDTH + HOTBAR_GAP + HUD_RIGHT_OFFSET);
+        int y = graphics.guiHeight() - HEIGHT - SCREEN_MARGIN + HUD_DOWN_OFFSET;
+        int leftX = Math.max(SCREEN_MARGIN,
+                graphics.guiWidth() / 2 - HOTBAR_HALF_WIDTH - HOTBAR_GAP - HUD_LEFT_OFFSET - WIDTH);
+
+        if (mainHand.getItem() instanceof AbstractGunItem mainGun) {
+            drawGunCard(graphics, minecraft.font, player, mainGun, mainHand, rightX, y, false);
+        }
+        if (offHand.getItem() instanceof AbstractGunItem offGun) {
+            drawGunCard(graphics, minecraft.font, player, offGun, offHand, leftX, y, true);
+        }
+    }
+
+    private static void drawGunCard(GuiGraphics graphics, Font font, Player player, AbstractGunItem gun, ItemStack stack, int x, int y, boolean mirrored) {
+        if (mirrored) {
+            drawAmmo(graphics, font, player, gun, stack, x + PADDING, y + PADDING);
+            drawPreview(graphics, stack, x + WIDTH - PADDING - 35, y + PADDING);
+            drawDurability(graphics, stack, x + WIDTH - PADDING - 36, y + 39, 34, 5);
             return;
         }
 
-        int x = Math.min(graphics.guiWidth() - WIDTH - SCREEN_MARGIN,
-                graphics.guiWidth() / 2 + HOTBAR_HALF_WIDTH + HOTBAR_GAP + HUD_RIGHT_OFFSET);
-        int y = graphics.guiHeight() - HEIGHT - SCREEN_MARGIN + HUD_DOWN_OFFSET;
-
         drawPreview(graphics, stack, x + PADDING + 2, y + PADDING);
         drawDurability(graphics, stack, x + PADDING + 1, y + 39, 34, 5);
-        drawAmmo(graphics, minecraft.font, player, gun, stack, x + 46, y + PADDING);
-    }
-
-    private static ItemStack gunStack(Player player) {
-        ItemStack mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof AbstractGunItem) {
-            return mainHand;
-        }
-        ItemStack offHand = player.getOffhandItem();
-        return offHand.getItem() instanceof AbstractGunItem ? offHand : ItemStack.EMPTY;
+        drawAmmo(graphics, font, player, gun, stack, x + 46, y + PADDING);
     }
 
     private static void drawPreview(GuiGraphics graphics, ItemStack stack, int x, int y) {
@@ -133,7 +141,7 @@ public final class GunHud {
         float ammoRatio = max <= 0 ? 0.0f : Mth.clamp(loaded / (float) max, 0.0f, 1.0f);
 
         graphics.drawString(font, trim(font, name, AMMO_WIDTH - 18), x, y, TEXT, false);
-        drawScaledString(graphics, font, state, x + AMMO_WIDTH - Math.round(font.width(state) * STATE_SCALE), y + 1, stateColor, STATE_SCALE);
+        drawScaledString(graphics, font, state, x + AMMO_WIDTH - Math.round(font.width(state) * STATE_SCALE), y + 1, stateColor);
 
         graphics.pose().pushPose();
         graphics.pose().scale(2.0f, 2.0f, 1.0f);
@@ -184,22 +192,22 @@ public final class GunHud {
         };
     }
 
-    private static void drawScaledString(GuiGraphics graphics, Font font, String text, int x, int y, int color, float scale) {
+    private static void drawScaledString(GuiGraphics graphics, Font font, String text, int x, int y, int color) {
         graphics.pose().pushPose();
-        graphics.pose().scale(scale, scale, 1.0f);
-        graphics.drawString(font, text, Math.round(x / scale), Math.round(y / scale), color, false);
+        graphics.pose().scale(GunHud.STATE_SCALE, GunHud.STATE_SCALE, 1.0f);
+        graphics.drawString(font, text, Math.round(x / GunHud.STATE_SCALE), Math.round(y / GunHud.STATE_SCALE), color, false);
         graphics.pose().popPose();
     }
 
     private static int lowColor(int baseColor, float ratio) {
         float redAmount = Mth.clamp((0.45f - ratio) / 0.45f, 0.0f, 1.0f);
-        return lerpColor(baseColor, EMPTY, redAmount);
+        return lerpColor(baseColor, redAmount);
     }
 
-    private static int lerpColor(int from, int to, float amount) {
-        int red = Mth.lerpInt(amount, from >> 16 & 255, to >> 16 & 255);
-        int green = Mth.lerpInt(amount, from >> 8 & 255, to >> 8 & 255);
-        int blue = Mth.lerpInt(amount, from & 255, to & 255);
+    private static int lerpColor(int from, float amount) {
+        int red = Mth.lerpInt(amount, from >> 16 & 255, GunHud.EMPTY >> 16 & 255);
+        int green = Mth.lerpInt(amount, from >> 8 & 255, GunHud.EMPTY >> 8 & 255);
+        int blue = Mth.lerpInt(amount, from & 255, GunHud.EMPTY & 255);
         return 0xFF000000 | red << 16 | green << 8 | blue;
     }
 

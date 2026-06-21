@@ -6,6 +6,7 @@
   "client": [
     "client.GunInputMixin",
     "client.GunEquipAnimMixin",
+    "client.GunHudToastLayerMixin",
     "client.SwingSuppressionMixin"
   ],
   "mixins": [

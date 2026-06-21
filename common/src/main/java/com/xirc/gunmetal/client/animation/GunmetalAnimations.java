@@ -23,6 +23,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -340,7 +341,7 @@ public final class GunmetalAnimations {
         }
 
         @Override
-        public Vec3f get3DTransform(String modelName, TransformType type, float tickDelta, Vec3f value0) {
+        public @NotNull Vec3f get3DTransform(@NotNull String modelName, @NotNull TransformType type, float tickDelta, @NotNull Vec3f value0) {
             if (isTriggeredActive()) {
                 String partName = animationPartName(modelName);
                 Vec3f transform = triggered.get3DTransform(partName, type, tickDelta, value0);
@@ -369,7 +370,7 @@ public final class GunmetalAnimations {
         }
 
         @Override
-        public FirstPersonMode getFirstPersonMode(float tickDelta) {
+        public @NotNull FirstPersonMode getFirstPersonMode(float tickDelta) {
             if (isReloadAnimation(triggeredName) && isTriggeredActive()) {
                 return FirstPersonMode.THIRD_PERSON_MODEL;
             }
@@ -377,7 +378,7 @@ public final class GunmetalAnimations {
         }
 
         @Override
-        public FirstPersonConfiguration getFirstPersonConfiguration(float tickDelta) {
+        public @NotNull FirstPersonConfiguration getFirstPersonConfiguration(float tickDelta) {
             return FIRST_PERSON_CONFIG;
         }
 
@@ -414,9 +415,8 @@ public final class GunmetalAnimations {
         @Override
         protected Vec3f transformVector(Vec3f vector, TransformType type, PartModifier partModifier, float fade) {
             return switch (type) {
-                case POSITION -> vector;
+                case POSITION, BEND -> vector;
                 case ROTATION -> partModifier.rotation().scale(fade);
-                case BEND -> vector;
             };
         }
     }
