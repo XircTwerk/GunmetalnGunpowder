@@ -21,21 +21,39 @@ public interface GunmetalPacketRegistry {
     }
 
     static void handleGunInput(ServerPlayer player, GunInput input) {
-        ItemStack stack = player.getMainHandItem();
-        AbstractGunItem gun;
-        if (stack.getItem() instanceof AbstractGunItem mainHandGun) {
-            gun = mainHandGun;
-        } else {
-            stack = player.getOffhandItem();
-            if (!(stack.getItem() instanceof AbstractGunItem offhandGun)) {
-                return;
-            }
-            gun = offhandGun;
+        switch (input) {
+            case SHOOT -> shootPreferredGun(player);
+            case SHOOT_OFFHAND -> shootOffhandGun(player);
+            case RELOAD -> reloadPreferredGun(player);
+        }
+    }
+
+    static void shootPreferredGun(ServerPlayer player) {
+        ItemStack mainHand = player.getMainHandItem();
+        if (mainHand.getItem() instanceof AbstractGunItem gun) {
+            gun.tryShoot(player, mainHand);
+            return;
+        }
+        shootOffhandGun(player);
+    }
+
+    static void shootOffhandGun(ServerPlayer player) {
+        ItemStack offhand = player.getOffhandItem();
+        if (offhand.getItem() instanceof AbstractGunItem gun) {
+            gun.tryShoot(player, offhand);
+        }
+    }
+
+    static void reloadPreferredGun(ServerPlayer player) {
+        ItemStack mainHand = player.getMainHandItem();
+        if (mainHand.getItem() instanceof AbstractGunItem gun) {
+            gun.tryReload(player, mainHand);
+            return;
         }
 
-        switch (input) {
-            case SHOOT -> gun.tryShoot(player, stack);
-            case RELOAD -> gun.tryReload(player, stack);
+        ItemStack offhand = player.getOffhandItem();
+        if (offhand.getItem() instanceof AbstractGunItem gun) {
+            gun.tryReload(player, offhand);
         }
     }
 
@@ -46,6 +64,7 @@ public interface GunmetalPacketRegistry {
 
     enum GunInput {
         SHOOT,
+        SHOOT_OFFHAND,
         RELOAD
     }
 }

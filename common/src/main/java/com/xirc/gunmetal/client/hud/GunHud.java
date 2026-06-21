@@ -170,7 +170,7 @@ public final class GunHud {
         if (loaded <= 0 && !player.isCreative()) {
             return "EMPTY";
         }
-        if (player.getCooldowns().isOnCooldown(gun)) {
+        if (AbstractGunItem.isCoolingDown(player, stack)) {
             return "CHAMBER";
         }
         return "SEMI";

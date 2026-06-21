@@ -31,19 +31,34 @@ public class GunInputMixin {
     @Unique
     private boolean gunmetal$shotConsumed;
 
+    @Unique
+    private boolean gunmetal$secondaryShotConsumed;
+
     @Inject(method = "handleKeybinds", at = @At("HEAD"))
     private void gunmetal$handleGunKeys(CallbackInfo ci) {
         if (!gunmetal$hasGunEquipped()) {
             gunmetal$shotConsumed = false;
+            gunmetal$secondaryShotConsumed = false;
             return;
         }
         if (!options.keyAttack.isDown()) {
             gunmetal$shotConsumed = false;
         }
+        if (!options.keyUse.isDown()) {
+            gunmetal$secondaryShotConsumed = false;
+        }
         while (GunmetalKeyMappings.INTERACT.consumeClick()) {
             gunmetal$allowGunInteraction = true;
             startUseItem();
             gunmetal$allowGunInteraction = false;
+        }
+        if (gunmetal$hasOffhandGun()) {
+            while (options.keyUse.consumeClick()) {
+                if (!gunmetal$secondaryShotConsumed) {
+                    gunmetal$secondaryShotConsumed = true;
+                    GunmetalKeyMappings.shootOffhand();
+                }
+            }
         }
     }
 
@@ -78,5 +93,10 @@ public class GunInputMixin {
         return player != null
                 && (player.getMainHandItem().getItem() instanceof AbstractGunItem
                 || player.getOffhandItem().getItem() instanceof AbstractGunItem);
+    }
+
+    @Unique
+    private boolean gunmetal$hasOffhandGun() {
+        return player != null && player.getOffhandItem().getItem() instanceof AbstractGunItem;
     }
 }

@@ -64,6 +64,10 @@ public interface GunmetalKeyMappings {
         send(GunmetalPacketRegistry.GunInput.SHOOT);
     }
 
+    static void shootOffhand() {
+        send(GunmetalPacketRegistry.GunInput.SHOOT_OFFHAND);
+    }
+
     static void send(GunmetalPacketRegistry.GunInput input) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         NetworkManager.sendToServer(GunmetalPacketRegistry.GUN_INPUT, GunmetalPacketRegistry.write(input, buf));

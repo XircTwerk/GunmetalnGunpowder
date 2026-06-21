@@ -35,6 +35,7 @@ public abstract class AbstractGunItem extends Item {
     public static final String RELOADING_ID = "Reloading";
     public static final String ANIMATION_ID = "GunmetalGunAnimation";
     public static final String ANIMATION_SEQUENCE_ID = "GunmetalGunAnimationSequence";
+    public static final String COOLDOWN_UNTIL_ID = "GunmetalGunCooldownUntil";
 
     protected AbstractGunItem(Properties settings) {
         super(settings);
@@ -265,7 +266,7 @@ public abstract class AbstractGunItem extends Item {
         }
         markAnimation(itemStack, fireAnimation(itemStack, user));
         if (!world.isClientSide) {
-            user.getCooldowns().addCooldown(this, inputCooldownTicks());
+            addCooldown(user, itemStack, inputCooldownTicks());
             fire(itemStack, world, user);
         }
         return InteractionResultHolder.success(itemStack);
@@ -279,7 +280,7 @@ public abstract class AbstractGunItem extends Item {
             return InteractionResultHolder.fail(itemStack);
         }
 
-        if (data.getBoolean(RELOADING_ID) && user.getCooldowns().isOnCooldown(this)) {
+        if (data.getBoolean(RELOADING_ID) && isOnCooldown(user, itemStack)) {
             return InteractionResultHolder.fail(itemStack);
         }
 
@@ -291,8 +292,8 @@ public abstract class AbstractGunItem extends Item {
         markAnimation(itemStack, reloadAnimation(itemStack));
         if (!world.isClientSide) {
             data.putBoolean(RELOADING_ID, true);
-            user.getCooldowns().addCooldown(this, reloadTicks);
-            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadTicks));
+            addCooldown(user, itemStack, reloadTicks);
+            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadTicks, heldHand(user, itemStack)));
             world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.5f, 1.0f);
         }
 
@@ -325,7 +326,7 @@ public abstract class AbstractGunItem extends Item {
 
         gun.markAnimation(gunStack, gun.fireAnimation(gunStack, player));
         if (!world.isClientSide) {
-            player.getCooldowns().addCooldown(gun, gun.inputCooldownTicks());
+            gun.addCooldown(player, gunStack, gun.inputCooldownTicks());
             gun.fire(gunStack, world, player);
         }
 
@@ -362,7 +363,7 @@ public abstract class AbstractGunItem extends Item {
     }
 
     protected boolean canFire(Player player, ItemStack stack) {
-        if (player.getCooldowns().isOnCooldown(this)) {
+        if (isOnCooldown(player, stack)) {
             return false;
         }
         if (isReloading(stack)) {
@@ -392,7 +393,7 @@ public abstract class AbstractGunItem extends Item {
         world.addFreshEntity(bullet);
 
         if (user instanceof Player player) {
-            player.getCooldowns().addCooldown(this, refireCooldownTicks());
+            addCooldown(player, itemStack, refireCooldownTicks());
             player.awardStat(Stats.ITEM_USED.get(this));
         }
     }
@@ -414,8 +415,38 @@ public abstract class AbstractGunItem extends Item {
                 world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.7f, 1.0f);
             }
             data.putBoolean(RELOADING_ID, false);
-            player.getCooldowns().removeCooldown(this);
+            clearCooldown(itemStack);
         }
+    }
+
+    protected void addCooldown(Player player, ItemStack stack, int ticks) {
+        if (ticks <= 0) {
+            return;
+        }
+        CompoundTag data = stack.getOrCreateTag();
+        long cooldownUntil = player.level().getGameTime() + ticks;
+        data.putLong(COOLDOWN_UNTIL_ID, Math.max(data.getLong(COOLDOWN_UNTIL_ID), cooldownUntil));
+    }
+
+    protected boolean isOnCooldown(Player player, ItemStack stack) {
+        return cooldownTicksRemaining(player, stack) > 0;
+    }
+
+    public static boolean isCoolingDown(Player player, ItemStack stack) {
+        return cooldownTicksRemaining(player, stack) > 0;
+    }
+
+    public static int cooldownTicksRemaining(Player player, ItemStack stack) {
+        long cooldownUntil = stack.getOrCreateTag().getLong(COOLDOWN_UNTIL_ID);
+        return Math.max(0, (int) (cooldownUntil - player.level().getGameTime()));
+    }
+
+    protected void clearCooldown(ItemStack stack) {
+        stack.getOrCreateTag().remove(COOLDOWN_UNTIL_ID);
+    }
+
+    private static InteractionHand heldHand(Player player, ItemStack stack) {
+        return player.getOffhandItem() == stack ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
     }
 
     protected boolean hasAmmoInInventory(Player player) {

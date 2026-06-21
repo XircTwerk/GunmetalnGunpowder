@@ -51,9 +51,9 @@ public final class GunReloadQueue {
                 continue;
             }
 
-            ItemStack mainHand = user.getMainHandItem();
-            if (mainHand.getItem() instanceof AbstractGunItem gun) {
-                gun.finishReload(mainHand, world, user);
+            ItemStack stack = user.getItemInHand(reload.getHand());
+            if (stack.getItem() instanceof AbstractGunItem gun) {
+                gun.finishReload(stack, world, user);
             }
         }
 

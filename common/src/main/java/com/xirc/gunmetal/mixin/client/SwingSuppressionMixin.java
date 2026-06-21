@@ -17,7 +17,7 @@ public class SwingSuppressionMixin {
         if (!(entity instanceof LocalPlayer player)) {
             return;
         }
-        if (player.getMainHandItem().getItem() instanceof AbstractGunItem) {
+        if (player.getItemInHand(hand).getItem() instanceof AbstractGunItem) {
             ci.cancel();
         }
     }

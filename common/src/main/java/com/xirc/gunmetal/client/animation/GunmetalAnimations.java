@@ -47,8 +47,11 @@ public final class GunmetalAnimations {
     private static final Map<AbstractClientPlayer, GunAnimation> PLAYER_ANIMATIONS = new WeakHashMap<>();
     private static final Map<AbstractClientPlayer, Float> SIDE_AIM = new WeakHashMap<>();
     private static long lastMainHandSequence = Long.MIN_VALUE;
-    private static String activeAnimation = "";
-    private static int animationTicks;
+    private static long lastOffHandSequence = Long.MIN_VALUE;
+    private static String activeMainHandAnimation = "";
+    private static String activeOffHandAnimation = "";
+    private static int mainHandAnimationTicks;
+    private static int offHandAnimationTicks;
     private static boolean localAnimationsLoaded;
     private static boolean initialized;
 
@@ -77,65 +80,113 @@ public final class GunmetalAnimations {
                 return;
             }
             AbstractClientPlayer player = minecraft.player;
-            ItemStack stack = player.getMainHandItem();
-            if (!(stack.getItem() instanceof AbstractGunItem)) {
-                lastMainHandSequence = Long.MIN_VALUE;
-                activeAnimation = "";
-                animationTicks = 0;
+            ItemStack mainHand = player.getMainHandItem();
+            ItemStack offHand = player.getOffhandItem();
+            boolean hasMainHandGun = mainHand.getItem() instanceof AbstractGunItem;
+            boolean hasOffHandGun = offHand.getItem() instanceof AbstractGunItem;
+            if (!hasMainHandGun && !hasOffHandGun) {
+                resetMainHandAnimation();
+                resetOffHandAnimation();
                 SIDE_AIM.remove(player);
                 stopPlayerAnimation(player);
                 return;
             }
             updateSideAim(player);
 
-            long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
-            if (lastMainHandSequence == Long.MIN_VALUE) {
-                lastMainHandSequence = sequence;
-                tickActiveAnimation(player);
-                return;
-            }
-
-            if (sequence != lastMainHandSequence) {
-                lastMainHandSequence = sequence;
-
-                String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
-                if (isFireAnimation(animation)) {
-                    activeAnimation = animation;
-                    animationTicks = FIRE_ANIMATION_TICKS;
-                    stopPlayerAnimation(player);
-                } else if (isReloadAnimation(animation)) {
-                    activeAnimation = animation;
-                    animationTicks = reloadAnimationTicks(animation);
-                    stopPlayerAnimation(player);
-                    playPlayerAnimation(player, animation);
-                }
-            }
-
-            tickActiveAnimation(player);
+            updateHandAnimation(player, mainHand, hasMainHandGun, true);
+            updateHandAnimation(player, offHand, hasOffHandGun, false);
+            tickActiveAnimations(player);
         });
     }
 
     private static AdjustmentModifier gunHoldModifier(AbstractClientPlayer player) {
-        return new AdjustmentModifier(partName -> {
-            if (!(player.getMainHandItem().getItem() instanceof AbstractGunItem)) {
+        return new GunArmModifier(partName -> {
+            boolean rightArm = "rightArm".equals(partName) || "right_arm".equals(partName);
+            boolean leftArm = "leftArm".equals(partName) || "left_arm".equals(partName);
+            if (!rightArm && !leftArm) {
+                return Optional.empty();
+            }
+            boolean hasMainHandGun = player.getMainHandItem().getItem() instanceof AbstractGunItem;
+            boolean hasOffHandGun = player.getOffhandItem().getItem() instanceof AbstractGunItem;
+            if ((rightArm && !hasMainHandGun) || (leftArm && !hasOffHandGun)) {
                 return Optional.empty();
             }
             Minecraft minecraft = Minecraft.getInstance();
             if (player == minecraft.player && minecraft.options.getCameraType().isFirstPerson()) {
                 return Optional.empty();
             }
-            if (isReloadAnimation(activeAnimation) && animationTicks > 0) {
+            if (isAnyReloadAnimationActive()) {
                 return Optional.empty();
             }
-            if ("rightArm".equals(partName) || "right_arm".equals(partName)) {
-                float pitchAim = AIM_DOWN_BIAS + (float) Math.toRadians(player.getXRot());
-                float sideAim = SIDE_AIM.computeIfAbsent(player, GunmetalAnimations::targetSideAim);
-                return Optional.of(new AdjustmentModifier.PartModifier(
-                        new Vec3f(ARM_HOLD_ROTATION + pitchAim + fireRecoil(), sideAim, 0.0f),
-                        new Vec3f(0.0f, 0.0f, 0.0f)));
-            }
-            return Optional.empty();
+            float pitchAim = AIM_DOWN_BIAS + (float) Math.toRadians(player.getXRot());
+            float sideAim = SIDE_AIM.computeIfAbsent(player, GunmetalAnimations::targetSideAim);
+            return Optional.of(new AdjustmentModifier.PartModifier(
+                    new Vec3f(ARM_HOLD_ROTATION + pitchAim + fireRecoil(rightArm), sideAim, 0.0f),
+                    new Vec3f(0.0f, 0.0f, 0.0f)));
         });
+    }
+
+    private static void updateHandAnimation(AbstractClientPlayer player, ItemStack stack, boolean hasGun, boolean mainHand) {
+        if (!hasGun) {
+            if (mainHand) {
+                resetMainHandAnimation();
+            } else {
+                resetOffHandAnimation();
+            }
+            return;
+        }
+
+        long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
+        long lastSequence = mainHand ? lastMainHandSequence : lastOffHandSequence;
+        if (lastSequence == Long.MIN_VALUE) {
+            setLastSequence(mainHand, sequence);
+            return;
+        }
+
+        if (sequence == lastSequence) {
+            return;
+        }
+
+        setLastSequence(mainHand, sequence);
+        String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
+        if (isFireAnimation(animation)) {
+            setActiveAnimation(mainHand, animation, FIRE_ANIMATION_TICKS);
+            stopPlayerAnimation(player);
+        } else if (isReloadAnimation(animation)) {
+            setActiveAnimation(mainHand, animation, reloadAnimationTicks(animation));
+            stopPlayerAnimation(player);
+            playPlayerAnimation(player, animation);
+        }
+    }
+
+    private static void setLastSequence(boolean mainHand, long sequence) {
+        if (mainHand) {
+            lastMainHandSequence = sequence;
+        } else {
+            lastOffHandSequence = sequence;
+        }
+    }
+
+    private static void setActiveAnimation(boolean mainHand, String animation, int ticks) {
+        if (mainHand) {
+            activeMainHandAnimation = animation;
+            mainHandAnimationTicks = ticks;
+        } else {
+            activeOffHandAnimation = animation;
+            offHandAnimationTicks = ticks;
+        }
+    }
+
+    private static void resetMainHandAnimation() {
+        lastMainHandSequence = Long.MIN_VALUE;
+        activeMainHandAnimation = "";
+        mainHandAnimationTicks = 0;
+    }
+
+    private static void resetOffHandAnimation() {
+        lastOffHandSequence = Long.MIN_VALUE;
+        activeOffHandAnimation = "";
+        offHandAnimationTicks = 0;
     }
 
     private static void updateSideAim(AbstractClientPlayer player) {
@@ -193,28 +244,51 @@ public final class GunmetalAnimations {
         }
     }
 
-    private static void tickActiveAnimation(AbstractClientPlayer player) {
-        if (animationTicks > 0) {
-            animationTicks--;
-            if (animationTicks > 0) {
-                return;
-            }
-            if (isReloadAnimation(activeAnimation)) {
-                stopPlayerAnimation(player);
-            }
-            activeAnimation = "";
+    private static void tickActiveAnimations(AbstractClientPlayer player) {
+        mainHandAnimationTicks = tickActiveAnimation(player, activeMainHandAnimation, mainHandAnimationTicks, true);
+        offHandAnimationTicks = tickActiveAnimation(player, activeOffHandAnimation, offHandAnimationTicks, false);
+    }
+
+    private static int tickActiveAnimation(AbstractClientPlayer player, String animation, int ticks, boolean mainHand) {
+        if (ticks <= 0) {
+            clearActiveAnimation(mainHand);
+            return 0;
+        }
+
+        int remaining = ticks - 1;
+        if (remaining > 0) {
+            return remaining;
+        }
+
+        if (isReloadAnimation(animation)) {
+            stopPlayerAnimation(player);
+        }
+        clearActiveAnimation(mainHand);
+        return 0;
+    }
+
+    private static void clearActiveAnimation(boolean mainHand) {
+        if (mainHand) {
+            activeMainHandAnimation = "";
         } else {
-            activeAnimation = "";
+            activeOffHandAnimation = "";
         }
     }
 
-    private static float fireRecoil() {
-        if (!isFireAnimation(activeAnimation) || animationTicks <= 0) {
+    private static float fireRecoil(boolean mainHand) {
+        String animation = mainHand ? activeMainHandAnimation : activeOffHandAnimation;
+        int ticks = mainHand ? mainHandAnimationTicks : offHandAnimationTicks;
+        if (!isFireAnimation(animation) || ticks <= 0) {
             return 0.0f;
         }
-        float age = FIRE_ANIMATION_TICKS - animationTicks;
+        float age = FIRE_ANIMATION_TICKS - ticks;
         float progress = Math.max(0.0f, Math.min(1.0f, age / (float) FIRE_ANIMATION_TICKS));
         return (float) (-Math.sin(progress * Math.PI) * 0.25f);
+    }
+
+    private static boolean isAnyReloadAnimationActive() {
+        return (isReloadAnimation(activeMainHandAnimation) && mainHandAnimationTicks > 0)
+                || (isReloadAnimation(activeOffHandAnimation) && offHandAnimationTicks > 0);
     }
 
     private static void stopPlayerAnimation(AbstractClientPlayer player) {
@@ -330,5 +404,20 @@ public final class GunmetalAnimations {
 
     private static String playerAnimationFallback(String animation) {
         return isReloadAnimation(animation) ? "reload" : animation;
+    }
+
+    private static final class GunArmModifier extends AdjustmentModifier {
+        GunArmModifier(java.util.function.Function<String, Optional<PartModifier>> source) {
+            super(source);
+        }
+
+        @Override
+        protected Vec3f transformVector(Vec3f vector, TransformType type, PartModifier partModifier, float fade) {
+            return switch (type) {
+                case POSITION -> vector;
+                case ROTATION -> partModifier.rotation().scale(fade);
+                case BEND -> vector;
+            };
+        }
     }
 }
