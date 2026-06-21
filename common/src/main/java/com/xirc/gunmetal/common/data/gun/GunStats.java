@@ -17,9 +17,12 @@ public record GunStats(
         int inputCooldownTicks,
         int refireCooldownTicks,
         int reloadCooldownTicks,
-        int reloadStepTicks
+        int reloadDurationTicks
 ) {
     public static GunStats fromJson(JsonObject json) {
+        int reloadDurationTicks = GsonHelper.isValidNode(json, "reload_duration_ticks")
+                ? GsonHelper.getAsInt(json, "reload_duration_ticks")
+                : GsonHelper.getAsInt(json, "reload_step_ticks");
         return new GunStats(
                 GsonHelper.getAsInt(json, "max_rounds"),
                 GsonHelper.getAsFloat(json, "damage"),
@@ -34,7 +37,7 @@ public record GunStats(
                 GsonHelper.getAsInt(json, "input_cooldown_ticks"),
                 GsonHelper.getAsInt(json, "refire_cooldown_ticks"),
                 GsonHelper.getAsInt(json, "reload_cooldown_ticks"),
-                GsonHelper.getAsInt(json, "reload_step_ticks"));
+                reloadDurationTicks);
     }
 
     public JsonObject toJson() {
@@ -52,7 +55,7 @@ public record GunStats(
         json.addProperty("input_cooldown_ticks", inputCooldownTicks);
         json.addProperty("refire_cooldown_ticks", refireCooldownTicks);
         json.addProperty("reload_cooldown_ticks", reloadCooldownTicks);
-        json.addProperty("reload_step_ticks", reloadStepTicks);
+        json.addProperty("reload_duration_ticks", reloadDurationTicks);
         return json;
     }
 }

@@ -10,7 +10,7 @@
   "range": 60.0,
   "refire_cooldown_ticks": 6,
   "reload_cooldown_ticks": 30,
-  "reload_step_ticks": 30,
+  "reload_duration_ticks": 30,
   "spread": 0.0,
   "stun_ticks": 1
 }

@@ -4,7 +4,7 @@ import com.xirc.gunmetal.common.data.gun.GunStats;
 import com.xirc.gunmetal.common.data.gun.GunStatsManager;
 import com.xirc.gunmetal.common.entity.projectile.BulletProjectile;
 import com.xirc.gunmetal.common.system.hitscan.HitscanGunShot;
-import com.xirc.gunmetal.common.tickable.PlaceholderGunReload;
+import com.xirc.gunmetal.common.tickable.GunReloadQueue;
 import com.xirc.gunmetal.common.util.DimensionData;
 import com.xirc.gunmetal.registry.GunmetalItems;
 import com.xirc.gunmetal.registry.GunmetalSoundEvents;
@@ -179,7 +179,7 @@ public abstract class AbstractGunItem extends Item {
      * The actual ammo is committed all at once when that timer ends.
      */
     protected int reloadDurationTicks() {
-        return stats().reloadStepTicks();
+        return stats().reloadDurationTicks();
     }
 
     /**
@@ -283,7 +283,7 @@ public abstract class AbstractGunItem extends Item {
         if (!world.isClientSide) {
             data.putBoolean(RELOADING_ID, true);
             user.getCooldowns().addCooldown(this, reloadCooldownTicks());
-            PlaceholderGunReload.enqueue(new DimensionData(user, world.dimension(), reloadDurationTicks()));
+            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadDurationTicks()));
             world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.5f, 1.0f);
         }
 
