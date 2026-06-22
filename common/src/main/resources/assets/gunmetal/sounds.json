@@ -18,7 +18,15 @@
   "reload": {
     "sounds": [
       {
-        "name": "minecraft:item.crossbow.loading_middle",
+        "name": "gunmetal:generic/handling/weap_magout_plastic",
+        "type": "event"
+      }
+    ]
+  },
+  "load": {
+    "sounds": [
+      {
+        "name": "gunmetal:generic/handling/weap_round_in_chamber_mag",
         "type": "event"
       }
     ]
