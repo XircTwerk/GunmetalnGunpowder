@@ -4,14 +4,10 @@ import com.xirc.gunmetal.common.item.AbstractGunItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.OutlineBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public final class GunHud {
@@ -84,33 +80,11 @@ public final class GunHud {
     }
 
     private static void drawPreview(GuiGraphics graphics, ItemStack stack, int x, int y) {
-        drawOutline(graphics, stack, x + 0.2f, y + 1.2f, 1.9f);
-
         graphics.pose().pushPose();
         graphics.pose().translate(x + 1.0f, y + 2.0f, 0.0f);
         graphics.pose().scale(1.8f, 1.8f, 1.0f);
         graphics.renderItem(stack, 0, 0);
         graphics.pose().popPose();
-    }
-
-    private static void drawOutline(GuiGraphics graphics, ItemStack stack, float x, float y, float scale) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null) {
-            return;
-        }
-
-        OutlineBufferSource outline = new OutlineBufferSource(graphics.bufferSource());
-        outline.setColor(255, 255, 255, 255);
-
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, -10.0f);
-        graphics.pose().scale(scale, scale, 1.0f);
-        minecraft.getItemRenderer().renderStatic(stack, ItemDisplayContext.GUI, LightTexture.FULL_BRIGHT,
-                OverlayTexture.NO_OVERLAY, graphics.pose(), outline, minecraft.level, 0);
-        graphics.pose().popPose();
-
-        outline.endOutlineBatch();
-        graphics.flush();
     }
 
     private static void drawDurability(GuiGraphics graphics, ItemStack stack, int x, int y, int width, int height) {

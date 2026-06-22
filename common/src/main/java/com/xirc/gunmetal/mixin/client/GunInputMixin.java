@@ -64,7 +64,7 @@ public class GunInputMixin {
 
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
     private void gunmetal$shootGun(CallbackInfoReturnable<Boolean> cir) {
-        if (!gunmetal$hasGunEquipped()) {
+        if (!gunmetal$hasMainHandGun()) {
             return;
         }
         if (!gunmetal$shotConsumed) {
@@ -98,5 +98,10 @@ public class GunInputMixin {
     @Unique
     private boolean gunmetal$hasOffhandGun() {
         return player != null && player.getOffhandItem().getItem() instanceof AbstractGunItem;
+    }
+
+    @Unique
+    private boolean gunmetal$hasMainHandGun() {
+        return player != null && player.getMainHandItem().getItem() instanceof AbstractGunItem;
     }
 }

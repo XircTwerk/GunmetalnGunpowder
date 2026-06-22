@@ -313,32 +313,20 @@ public abstract class AbstractGunItem extends Item {
 
     public static boolean handleLeftClick(Player player) {
         ItemStack mainHand = player.getMainHandItem();
-        ItemStack offHand = player.getOffhandItem();
-
-        ItemStack gunStack = null;
-        AbstractGunItem gun = null;
-        if (mainHand.getItem() instanceof AbstractGunItem mainGun) {
-            gunStack = mainHand;
-            gun = mainGun;
-        } else if (offHand.getItem() instanceof AbstractGunItem offGun) {
-            gunStack = offHand;
-            gun = offGun;
-        }
-
-        if (gun == null) {
+        if (!(mainHand.getItem() instanceof AbstractGunItem gun)) {
             return false;
         }
 
         Level world = player.level();
 
-        if (!gun.canFire(player, gunStack)) {
+        if (!gun.canFire(player, mainHand)) {
             return true;
         }
 
-        gun.markAnimation(gunStack, gun.fireAnimation(gunStack, player));
+        gun.markAnimation(mainHand, gun.fireAnimation(mainHand, player));
         if (!world.isClientSide) {
-            gun.addCooldown(player, gunStack, gun.inputCooldownTicks());
-            gun.fire(gunStack, world, player);
+            gun.addCooldown(player, mainHand, gun.inputCooldownTicks());
+            gun.fire(mainHand, world, player);
         }
 
         return true;

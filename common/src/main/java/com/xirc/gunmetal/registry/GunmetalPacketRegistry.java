@@ -32,9 +32,7 @@ public interface GunmetalPacketRegistry {
         ItemStack mainHand = player.getMainHandItem();
         if (mainHand.getItem() instanceof AbstractGunItem gun) {
             gun.tryShoot(player, mainHand);
-            return;
         }
-        shootOffhandGun(player);
     }
 
     static void shootOffhandGun(ServerPlayer player) {
