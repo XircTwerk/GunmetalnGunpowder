@@ -35,8 +35,8 @@ public final class GunStatsDefaults {
             9.0f,
             19.0f,
             1,
-            4,
-            6,
+            0,
+            1,
             34,
             34);
 
@@ -51,8 +51,8 @@ public final class GunStatsDefaults {
             5.56f,
             45.0f,
             1,
-            2,
-            5,
+            0,
+            3,
             29,
             29);
 
