@@ -60,7 +60,8 @@ subprojects {
         silentMojangMappingsLicense()
         runs.configureEach {
             vmArg '-Xms512M'
-            vmArg '-Xmx4G'
+            vmArg '-Xmx2G'
+            vmArg '-XX:HeapBaseMinAddress=8G'
         }
     }
 

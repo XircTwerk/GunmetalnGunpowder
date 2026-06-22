@@ -20,12 +20,14 @@ public record GunStats(
         int reloadDurationTicks
 ) {
     public static GunStats fromJson(JsonObject json) {
+        int refireCooldownTicks = GsonHelper.getAsInt(json, "refire_cooldown_ticks");
         int reloadDurationTicks = GsonHelper.isValidNode(json, "reload_duration_ticks")
                 ? GsonHelper.getAsInt(json, "reload_duration_ticks")
                 : GsonHelper.getAsInt(json, "reload_step_ticks");
+        float damage = GsonHelper.getAsFloat(json, "damage");
         return new GunStats(
                 GsonHelper.getAsInt(json, "max_rounds"),
-                GsonHelper.getAsFloat(json, "damage"),
+                damage,
                 GsonHelper.getAsFloat(json, "range"),
                 GsonHelper.getAsFloat(json, "knockback"),
                 GsonHelper.getAsInt(json, "barrels"),
@@ -35,7 +37,7 @@ public record GunStats(
                 GsonHelper.getAsFloat(json, "bullet_length"),
                 GsonHelper.getAsInt(json, "stun_ticks"),
                 GsonHelper.getAsInt(json, "input_cooldown_ticks"),
-                GsonHelper.getAsInt(json, "refire_cooldown_ticks"),
+                refireCooldownTicks,
                 GsonHelper.getAsInt(json, "reload_cooldown_ticks"),
                 reloadDurationTicks);
     }

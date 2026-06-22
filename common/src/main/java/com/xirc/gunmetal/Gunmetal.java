@@ -5,6 +5,7 @@ import com.xirc.gunmetal.common.event.GunmetalEvents;
 import dev.architectury.registry.ReloadListenerRegistry;
 import com.xirc.gunmetal.registry.GunmetalCreativeTabs;
 import com.xirc.gunmetal.registry.GunmetalEntityTypes;
+import com.xirc.gunmetal.registry.GunmetalGameRules;
 import com.xirc.gunmetal.registry.GunmetalGuns;
 import com.xirc.gunmetal.registry.GunmetalItems;
 import com.xirc.gunmetal.registry.GunmetalPacketRegistry;
@@ -19,6 +20,7 @@ public final class Gunmetal {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static void init() {
+        GunmetalGameRules.init();
         GunmetalItems.init();
         GunmetalGuns.init();
         GunmetalEntityTypes.init();

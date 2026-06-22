@@ -160,8 +160,9 @@ public abstract class AbstractGunItem extends Item {
     /**
      * Main cooldown after a successful shot, measured in ticks.
      * <p>
-     * While this cooldown is active, the gun cannot fire again. Minecraft runs at 20
-     * ticks per second under normal conditions.
+     * While this cooldown is active, the gun cannot fire again. If this is shorter
+     * than the fire animation, the next accepted shot restarts that animation early.
+     * Minecraft runs at 20 ticks per second under normal conditions.
      */
     protected int refireCooldownTicks() {
         return stats().refireCooldownTicks();
@@ -185,6 +186,16 @@ public abstract class AbstractGunItem extends Item {
      */
     protected int reloadDurationTicks() {
         return stats().reloadDurationTicks();
+    }
+
+    /**
+     * Strength used when bullets damage blocks.
+     * <p>
+     * Transparent blocks break instantly while the {@code bulletsBreakBlocks} gamerule is enabled.
+     * Other breakable blocks use a quarter of the gun's regular damage.
+     */
+    protected float blockDamage() {
+        return damage() / 4.0f;
     }
 
     /**
@@ -385,7 +396,7 @@ public abstract class AbstractGunItem extends Item {
 
         world.playSound(null, user.getX(), user.getY(), user.getZ(), fireSound(), SoundSource.PLAYERS, 1f, 1f);
 
-        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread());
+        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread(), blockDamage());
 
         BulletProjectile bullet = new BulletProjectile(world, user, caliber(), bulletLength(), stunTicks(), 0);
         bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 10, 0f);

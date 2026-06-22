@@ -2,6 +2,7 @@ package com.xirc.gunmetal.client.animation;
 
 import com.xirc.gunmetal.Gunmetal;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
+import mod.azure.azurelib.AzureLib;
 import mod.azure.azurelib.animation.controller.AzAnimationController;
 import mod.azure.azurelib.animation.controller.AzAnimationControllerContainer;
 import mod.azure.azurelib.animation.dispatch.AzDispatchSide;
@@ -12,12 +13,15 @@ import mod.azure.azurelib.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.UUID;
+
 public class BerettaAnimator extends AzItemAnimator {
     private static final ResourceLocation ANIMATION = Gunmetal.id("animations/beretta.animation.json");
     private static final String CONTROLLER = "gun";
 
     private AzAnimationController<ItemStack> controller;
     private long lastSequence = Long.MIN_VALUE;
+    private UUID lastStackId;
     private long fireEffectEndsAt;
     private boolean sequenceInitialized;
 
@@ -33,9 +37,11 @@ public class BerettaAnimator extends AzItemAnimator {
             return;
         }
 
+        UUID stackId = stackId(stack);
         long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
-        if (!sequenceInitialized) {
+        if (!sequenceInitialized || stackChanged(stackId)) {
             sequenceInitialized = true;
+            lastStackId = stackId;
             lastSequence = sequence;
             return;
         }
@@ -44,6 +50,9 @@ public class BerettaAnimator extends AzItemAnimator {
             lastSequence = sequence;
             String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
             if (!animation.isEmpty()) {
+                if (animation.startsWith("fire")) {
+                    resetController();
+                }
                 dispatch(animation, playBehavior(animation));
                 markEffectWindow(animation);
             }
@@ -72,11 +81,29 @@ public class BerettaAnimator extends AzItemAnimator {
                 .forEach(action -> action.handle(AzDispatchSide.CLIENT, this));
     }
 
+    private void resetController() {
+        controller.animationQueue().clear();
+        controller.controllerTimer().reset();
+        controller.keyframeManager().keyframeCallbackHandler().reset();
+        controller.setCurrentAnimation(null);
+        controller.stateMachine().stop();
+    }
+
     private static AzPlayBehavior playBehavior(String animation) {
         return "fire_final".equals(animation) ? AzPlayBehaviors.HOLD_ON_LAST_FRAME : AzPlayBehaviors.PLAY_ONCE;
     }
 
     private void markEffectWindow(String animation) {
         fireEffectEndsAt = animation.startsWith("fire") ? System.nanoTime() + 250_000_000L : 0L;
+    }
+
+    private boolean stackChanged(UUID stackId) {
+        return stackId != null && !stackId.equals(lastStackId);
+    }
+
+    private static UUID stackId(ItemStack stack) {
+        return stack.getOrCreateTag().hasUUID(AzureLib.ITEM_UUID_TAG)
+                ? stack.getOrCreateTag().getUUID(AzureLib.ITEM_UUID_TAG)
+                : null;
     }
 }

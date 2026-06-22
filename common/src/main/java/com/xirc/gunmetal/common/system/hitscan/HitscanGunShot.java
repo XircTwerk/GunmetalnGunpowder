@@ -1,5 +1,7 @@
 package com.xirc.gunmetal.common.system.hitscan;
 
+import com.xirc.gunmetal.common.system.block.BulletBlockDamage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -14,6 +16,8 @@ import net.minecraft.world.phys.Vec3;
 public final class HitscanGunShot {
     public static final float CLOSE_DAMAGE_MULT = 3.0f;
     public static final double BASELINE_DISTANCE = 8.0;
+    private static final int MAX_TRANSPARENT_BLOCKS = 16;
+    private static final double RAY_STEP = 0.05;
 
     private HitscanGunShot() {
     }
@@ -28,17 +32,18 @@ public final class HitscanGunShot {
         return (float) (1.0 - t);
     }
 
-    public static void fire(LivingEntity user, float damage, float range, float knockback, int barrels, int pelletsPerBarrel, float spread) {
+    public static void fire(LivingEntity user, float damage, float range, float knockback, int barrels, int pelletsPerBarrel, float spread, float blockDamage) {
         Level world = user.level();
         int pellets = Math.max(1, pelletsPerBarrel);
         float pelletDamage = damage / pellets;
+        float pelletBlockDamage = blockDamage / pellets;
         int totalPellets = Math.max(1, barrels) * pellets;
         for (int i = 0; i < totalPellets; i++) {
-            fireRay(user, world, pelletDamage, range, knockback, spread);
+            fireRay(user, world, pelletDamage, range, knockback, spread, pelletBlockDamage);
         }
     }
 
-    private static void fireRay(LivingEntity user, Level world, float pelletDamage, float range, float knockback, float spread) {
+    private static void fireRay(LivingEntity user, Level world, float pelletDamage, float range, float knockback, float spread, float pelletBlockDamage) {
         Vec3 eye = user.getEyePosition();
         RandomSource random = user.getRandom();
         Vec3 look = user.getViewVector(1.0f).add(
@@ -48,11 +53,8 @@ public final class HitscanGunShot {
         ).normalize();
         Vec3 end = eye.add(look.scale(range));
 
-        BlockHitResult blockHit = world.clip(new ClipContext(
-                eye, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, user));
-        if (blockHit.getType() != HitResult.Type.MISS) {
-            end = blockHit.getLocation();
-        }
+        BlockTrace blockTrace = traceBlocks(user, world, eye, end, look, pelletBlockDamage);
+        end = blockTrace.end;
 
         AABB searchBox = new AABB(eye, end).inflate(0.3);
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
@@ -69,7 +71,38 @@ public final class HitscanGunShot {
                 Vec3 kb = target.position().subtract(user.position()).normalize();
                 target.knockback(knockback, -kb.x, -kb.z);
             }
+        } else if (blockTrace.hit != null) {
+            damageBlock(world, blockTrace.hit, pelletBlockDamage);
         }
 
+    }
+
+    private static BlockTrace traceBlocks(LivingEntity user, Level world, Vec3 start, Vec3 end, Vec3 direction, float blockDamage) {
+        Vec3 rayStart = start;
+        for (int i = 0; i < MAX_TRANSPARENT_BLOCKS; i++) {
+            BlockHitResult hit = world.clip(new ClipContext(
+                    rayStart, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, user));
+            if (hit.getType() == HitResult.Type.MISS) {
+                return new BlockTrace(end, null);
+            }
+
+            BlockPos pos = hit.getBlockPos();
+            if (BulletBlockDamage.breaksInstantly(world, pos, world.getBlockState(pos))
+                    && damageBlock(world, hit, blockDamage)) {
+                rayStart = hit.getLocation().add(direction.scale(RAY_STEP));
+                continue;
+            }
+
+            return new BlockTrace(hit.getLocation(), hit);
+        }
+        return new BlockTrace(rayStart, null);
+    }
+
+    private static boolean damageBlock(Level world, BlockHitResult hit, float blockDamage) {
+        BlockPos pos = hit.getBlockPos();
+        return BulletBlockDamage.hit(world, pos, world.getBlockState(pos), blockDamage);
+    }
+
+    private record BlockTrace(Vec3 end, BlockHitResult hit) {
     }
 }

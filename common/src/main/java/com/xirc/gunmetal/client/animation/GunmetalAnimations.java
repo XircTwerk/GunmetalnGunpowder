@@ -16,6 +16,7 @@ import dev.kosmx.playerAnim.core.util.Vec3f;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
+import mod.azure.azurelib.AzureLib;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -30,6 +31,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.WeakHashMap;
 
 @Environment(EnvType.CLIENT)
@@ -49,6 +51,8 @@ public final class GunmetalAnimations {
     private static final Map<AbstractClientPlayer, Float> SIDE_AIM = new WeakHashMap<>();
     private static long lastMainHandSequence = Long.MIN_VALUE;
     private static long lastOffHandSequence = Long.MIN_VALUE;
+    private static UUID lastMainHandStackId;
+    private static UUID lastOffHandStackId;
     private static String activeMainHandAnimation = "";
     private static String activeOffHandAnimation = "";
     private static int mainHandAnimationTicks;
@@ -138,8 +142,17 @@ public final class GunmetalAnimations {
         }
 
         long sequence = stack.getOrCreateTag().getLong(AbstractGunItem.ANIMATION_SEQUENCE_ID);
+        UUID stackId = stackId(stack);
+        if (stackChanged(mainHand, stackId)) {
+            setLastStackId(mainHand, stackId);
+            setLastSequence(mainHand, sequence);
+            clearActiveAnimation(mainHand);
+            return;
+        }
+
         long lastSequence = mainHand ? lastMainHandSequence : lastOffHandSequence;
         if (lastSequence == Long.MIN_VALUE) {
+            setLastStackId(mainHand, stackId);
             setLastSequence(mainHand, sequence);
             return;
         }
@@ -180,14 +193,35 @@ public final class GunmetalAnimations {
 
     private static void resetMainHandAnimation() {
         lastMainHandSequence = Long.MIN_VALUE;
+        lastMainHandStackId = null;
         activeMainHandAnimation = "";
         mainHandAnimationTicks = 0;
     }
 
     private static void resetOffHandAnimation() {
         lastOffHandSequence = Long.MIN_VALUE;
+        lastOffHandStackId = null;
         activeOffHandAnimation = "";
         offHandAnimationTicks = 0;
+    }
+
+    private static void setLastStackId(boolean mainHand, UUID stackId) {
+        if (mainHand) {
+            lastMainHandStackId = stackId;
+        } else {
+            lastOffHandStackId = stackId;
+        }
+    }
+
+    private static boolean stackChanged(boolean mainHand, UUID stackId) {
+        UUID lastStackId = mainHand ? lastMainHandStackId : lastOffHandStackId;
+        return stackId != null && !stackId.equals(lastStackId);
+    }
+
+    private static UUID stackId(ItemStack stack) {
+        return stack.getOrCreateTag().hasUUID(AzureLib.ITEM_UUID_TAG)
+                ? stack.getOrCreateTag().getUUID(AzureLib.ITEM_UUID_TAG)
+                : null;
     }
 
     private static void updateSideAim(AbstractClientPlayer player) {
