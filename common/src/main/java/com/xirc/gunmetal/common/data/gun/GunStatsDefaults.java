@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class GunStatsDefaults {
     public static final ResourceLocation PLACEHOLDER_GUN_ID = Gunmetal.id("placeholder_gun");
     public static final ResourceLocation BERETTA_ID = Gunmetal.id("beretta");
+    public static final ResourceLocation M16_ID = Gunmetal.id("m16");
 
     public static final GunStats PLACEHOLDER_GUN = new GunStats(
             6,
@@ -38,6 +39,22 @@ public final class GunStatsDefaults {
             6,
             34,
             34);
+
+    public static final GunStats M16 = new GunStats(
+            20,
+            6.0f,
+            90.0f,
+            0.2f,
+            1,
+            1,
+            0.015f,
+            5.56f,
+            45.0f,
+            1,
+            2,
+            5,
+            29,
+            29);
 
     private GunStatsDefaults() {
     }

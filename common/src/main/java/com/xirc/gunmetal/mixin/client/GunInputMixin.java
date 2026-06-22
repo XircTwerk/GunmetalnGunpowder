@@ -52,11 +52,24 @@ public class GunInputMixin {
             startUseItem();
             gunmetal$allowGunInteraction = false;
         }
-        if (gunmetal$hasOffhandGun()) {
-            while (options.keyUse.consumeClick()) {
-                if (!gunmetal$secondaryShotConsumed) {
-                    gunmetal$secondaryShotConsumed = true;
-                    GunmetalKeyMappings.shootOffhand();
+        AbstractGunItem mainHandGun = gunmetal$mainHandGun();
+        if (mainHandGun != null && mainHandGun.isAutomatic() && options.keyAttack.isDown()) {
+            gunmetal$shotConsumed = true;
+            GunmetalKeyMappings.shoot();
+        }
+        AbstractGunItem offhandGun = gunmetal$offhandGun();
+        if (offhandGun != null) {
+            if (offhandGun.isAutomatic() && options.keyUse.isDown()) {
+                while (options.keyUse.consumeClick()) {
+                }
+                gunmetal$secondaryShotConsumed = true;
+                GunmetalKeyMappings.shootOffhand();
+            } else {
+                while (options.keyUse.consumeClick()) {
+                    if (!gunmetal$secondaryShotConsumed) {
+                        gunmetal$secondaryShotConsumed = true;
+                        GunmetalKeyMappings.shootOffhand();
+                    }
                 }
             }
         }
@@ -96,12 +109,17 @@ public class GunInputMixin {
     }
 
     @Unique
-    private boolean gunmetal$hasOffhandGun() {
-        return player != null && player.getOffhandItem().getItem() instanceof AbstractGunItem;
+    private boolean gunmetal$hasMainHandGun() {
+        return player != null && player.getMainHandItem().getItem() instanceof AbstractGunItem;
     }
 
     @Unique
-    private boolean gunmetal$hasMainHandGun() {
-        return player != null && player.getMainHandItem().getItem() instanceof AbstractGunItem;
+    private AbstractGunItem gunmetal$mainHandGun() {
+        return player != null && player.getMainHandItem().getItem() instanceof AbstractGunItem gun ? gun : null;
+    }
+
+    @Unique
+    private AbstractGunItem gunmetal$offhandGun() {
+        return player != null && player.getOffhandItem().getItem() instanceof AbstractGunItem gun ? gun : null;
     }
 }

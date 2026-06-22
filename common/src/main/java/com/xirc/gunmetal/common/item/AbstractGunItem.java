@@ -352,6 +352,10 @@ public abstract class AbstractGunItem extends Item {
         return reloadDurationTicks();
     }
 
+    public boolean isAutomatic() {
+        return false;
+    }
+
     protected void markAnimation(ItemStack stack, String animation) {
         if (animation == null || animation.isEmpty()) {
             return;
@@ -384,10 +388,10 @@ public abstract class AbstractGunItem extends Item {
 
         world.playSound(null, user.getX(), user.getY(), user.getZ(), fireSound(), SoundSource.PLAYERS, 1f, 1f);
 
-        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread(), blockDamage());
-
         BulletProjectile bullet = new BulletProjectile(world, user, caliber(), bulletLength(), stunTicks(), 0);
         bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 10, 0f);
+
+        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread(), blockDamage(), bullet);
 
         world.addFreshEntity(bullet);
 

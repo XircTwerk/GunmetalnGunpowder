@@ -26,6 +26,7 @@ public final class GunStatsProvider implements DataProvider {
         Map<ResourceLocation, GunStats> stats = new LinkedHashMap<>();
         stats.put(GunStatsDefaults.PLACEHOLDER_GUN_ID, GunStatsDefaults.PLACEHOLDER_GUN);
         stats.put(GunStatsDefaults.BERETTA_ID, GunStatsDefaults.BERETTA);
+        stats.put(GunStatsDefaults.M16_ID, GunStatsDefaults.M16);
 
         return CompletableFuture.allOf(stats.entrySet().stream()
                 .map(entry -> DataProvider.saveStable(cache, entry.getValue().toJson(), path(entry.getKey())))

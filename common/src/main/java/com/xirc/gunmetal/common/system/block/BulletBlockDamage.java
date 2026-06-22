@@ -3,6 +3,7 @@ package com.xirc.gunmetal.common.system.block;
 import com.xirc.gunmetal.registry.GunmetalGameRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
@@ -21,11 +22,20 @@ public final class BulletBlockDamage {
     private static final float MIN_CHIPPED_BLAST_RESISTANCE = 2.0f;
     private static final float MAX_CHIPPED_BLAST_RESISTANCE = 4.0f;
     private static final Map<BlockKey, DamageState> DAMAGE = new HashMap<>();
+    private static final Map<BlockKey, DelayedHit> DELAYED_HITS = new HashMap<>();
 
     private BulletBlockDamage() {
     }
 
     public static boolean hit(Level level, BlockPos pos, BlockState state, float strength) {
+        return hit(level, pos, state, strength, false);
+    }
+
+    public static boolean chip(Level level, BlockPos pos, BlockState state, float strength) {
+        return hit(level, pos, state, strength, true);
+    }
+
+    private static boolean hit(Level level, BlockPos pos, BlockState state, float strength, boolean forceChip) {
         if (!(level instanceof ServerLevel serverLevel)
                 || !serverLevel.getGameRules().getBoolean(GunmetalGameRules.BULLETS_BREAK_BLOCKS)
                 || state.isAir()
@@ -38,7 +48,7 @@ public final class BulletBlockDamage {
             return false;
         }
 
-        if (breaksInstantly(level, pos, state)) {
+        if (!forceChip && breaksInstantly(level, pos, state)) {
             boolean destroyed = breakBlockAndDrop(serverLevel, pos);
             if (destroyed) {
                 clear(serverLevel, pos);
@@ -47,7 +57,7 @@ public final class BulletBlockDamage {
         }
 
         float blastResistance = state.getBlock().getExplosionResistance();
-        if (!isChippable(state, blastResistance)) {
+        if (!forceChip && !isChippable(state, blastResistance)) {
             return false;
         }
 
@@ -68,6 +78,39 @@ public final class BulletBlockDamage {
         DAMAGE.put(key, new DamageState(damage, now));
         serverLevel.destroyBlockProgress(breakerId(pos), pos, Mth.clamp((int) (breakage * 10.0f), 0, 9));
         return false;
+    }
+
+    public static void hitNextTick(Level level, BlockPos pos, float strength) {
+        if (!(level instanceof ServerLevel serverLevel)
+                || !serverLevel.getGameRules().getBoolean(GunmetalGameRules.BULLETS_BREAK_BLOCKS)
+                || strength <= 0) {
+            return;
+        }
+        DELAYED_HITS.put(new BlockKey(serverLevel.dimension(), pos.immutable()), new DelayedHit(strength, 1));
+    }
+
+    public static void tick(MinecraftServer server) {
+        if (DELAYED_HITS.isEmpty()) {
+            return;
+        }
+
+        Map<BlockKey, DelayedHit> waiting = new HashMap<>();
+        for (Map.Entry<BlockKey, DelayedHit> entry : DELAYED_HITS.entrySet()) {
+            BlockKey key = entry.getKey();
+            DelayedHit delayedHit = entry.getValue();
+            if (delayedHit.ticks > 0) {
+                waiting.put(key, new DelayedHit(delayedHit.strength, delayedHit.ticks - 1));
+                continue;
+            }
+
+            ServerLevel level = server.getLevel(key.dimension);
+            if (level != null) {
+                chip(level, key.pos, level.getBlockState(key.pos), delayedHit.strength);
+            }
+        }
+
+        DELAYED_HITS.clear();
+        DELAYED_HITS.putAll(waiting);
     }
 
     public static boolean breaksInstantly(Level level, BlockPos pos, BlockState state) {
@@ -121,5 +164,8 @@ public final class BulletBlockDamage {
     }
 
     private record DamageState(float damage, long lastHit) {
+    }
+
+    private record DelayedHit(float strength, int ticks) {
     }
 }

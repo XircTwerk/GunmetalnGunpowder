@@ -17,6 +17,7 @@ public interface GunmetalCreativeTabs {
                     .icon(() -> new ItemStack(GunmetalGuns.BERETTA.get()))
                     .displayItems((displayContext, entries) -> {
                         entries.accept(GunmetalGuns.BERETTA.get());
+                        entries.accept(GunmetalGuns.M16.get());
                     })
                     .build());
 

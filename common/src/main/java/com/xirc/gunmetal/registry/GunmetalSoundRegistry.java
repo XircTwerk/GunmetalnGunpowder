@@ -15,6 +15,7 @@ public interface GunmetalSoundRegistry {
     RegistrySupplier<SoundEvent> LOAD = register("reload");
     RegistrySupplier<SoundEvent> REVOLVER_FIRE = register("revolver_fire");
     RegistrySupplier<SoundEvent> BERETTA_M9_SHOT = register("beretta_m9_shot");
+    RegistrySupplier<SoundEvent> M16_SHOT = register("m16_shot");
 
     static RegistrySupplier<SoundEvent> register(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(Gunmetal.id(name)));

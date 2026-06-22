@@ -11,5 +11,7 @@ public final class GunmetalItemRenderers {
     public static void register() {
         AzItemRendererRegistry.register(GunmetalGuns.BERETTA.get(), BerettaItemRenderer::create);
         AzIdentityRegistry.register(GunmetalGuns.BERETTA.get());
+        AzItemRendererRegistry.register(GunmetalGuns.M16.get(), M16ItemRenderer::create);
+        AzIdentityRegistry.register(GunmetalGuns.M16.get());
     }
 }

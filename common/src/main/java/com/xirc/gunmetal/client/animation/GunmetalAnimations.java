@@ -405,9 +405,6 @@ public final class GunmetalAnimations {
 
         @Override
         public @NotNull FirstPersonMode getFirstPersonMode(float tickDelta) {
-            if (isReloadAnimation(triggeredName) && isTriggeredActive()) {
-                return FirstPersonMode.THIRD_PERSON_MODEL;
-            }
             return FirstPersonMode.NONE;
         }
 
