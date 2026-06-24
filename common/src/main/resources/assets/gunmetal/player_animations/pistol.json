@@ -19,7 +19,7 @@
 							"post": [0, 0, 0],
 							"lerp_mode": "catmullrom"
 						},
-						"0.083333": {
+						"0.08333": {
 							"vector": [0, -0.5, 0.5],
 							"easing": "easeInOutBack"
 						},
