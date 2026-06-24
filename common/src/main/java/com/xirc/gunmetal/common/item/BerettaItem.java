@@ -8,12 +8,16 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-public class BerettaItem extends AbstractGunItem {
-    private static final int EMPTY_RELOAD_TICKS = 17;
-    private static final int TACTICAL_RELOAD_TICKS = 34;
+import java.util.List;
 
+public class BerettaItem extends AbstractGunItem {
     public BerettaItem(Properties settings) {
         super(settings);
+    }
+
+    @Override
+    protected AmmoType ammoType() {
+        return AmmoType.PISTOL;
     }
 
     @Override
@@ -37,12 +41,18 @@ public class BerettaItem extends AbstractGunItem {
     }
 
     @Override
-    protected String reloadAnimation(ItemStack stack) {
-        return getShots(stack) <= 0 ? "reload_empty" : "deload";
-    }
-
-    @Override
-    protected int reloadDurationTicks(ItemStack stack) {
-        return getShots(stack) <= 0 ? EMPTY_RELOAD_TICKS : TACTICAL_RELOAD_TICKS;
+    protected List<ReloadPart> reloadParts(ItemStack stack) {
+        if (getShots(stack) <= 0) {
+            // "reload": no round chambered. Parts -> draw mag, insert mag, rack slide.
+            return List.of(
+                    new ReloadPart("reload_start", 7),
+                    new ReloadPart("reload_load", 7),
+                    new ReloadPart("reload_end", 5));
+        }
+        // "deload": a round is still chambered, so no slide rack at the end.
+        return List.of(
+                new ReloadPart("deload_start", 8),
+                new ReloadPart("deload_load", 7),
+                new ReloadPart("deload_end", 6));
     }
 }

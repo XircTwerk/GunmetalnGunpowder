@@ -45,5 +45,12 @@
         "name": "gunmetal:gun/beretta/fiveseven_fire_close"
       }
     ]
+  },
+  "assault_rifle_shot": {
+    "sounds": [
+      {
+        "name": "gunmetal:gun/assault_rifle/m1a_fire_close1"
+      }
+    ]
   }
 }

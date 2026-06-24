@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public class M16Animator extends AzItemAnimator {
-    private static final ResourceLocation ANIMATION = Gunmetal.id("animations/m16.animation.json");
+public class AssaultRifleAnimator extends AzItemAnimator {
+    private static final ResourceLocation ANIMATION = Gunmetal.id("animations/assault_rifle.animation.json");
     private static final String CONTROLLER = "gun";
 
     private AzAnimationController<ItemStack> controller;

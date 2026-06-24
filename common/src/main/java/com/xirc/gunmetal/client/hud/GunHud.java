@@ -1,6 +1,8 @@
 package com.xirc.gunmetal.client.hud;
 
 import com.xirc.gunmetal.common.item.AbstractGunItem;
+import com.xirc.gunmetal.common.item.AmmoBoxItem;
+import com.xirc.gunmetal.common.item.AmmoType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -107,7 +109,7 @@ public final class GunHud {
     private static void drawAmmo(GuiGraphics graphics, Font font, Player player, AbstractGunItem gun, ItemStack stack, int x, int y) {
         int loaded = gun.getShots(stack);
         int max = gun.getMaxRounds();
-        int reserve = reserveAmmo(player, gun.getAmmoItem());
+        int reserve = reserveAmmo(player, gun);
         String name = stack.getHoverName().getString();
         String ammoType = gun.getAmmoItem().getDescription().getString();
         String state = state(player, gun, stack, loaded);
@@ -129,17 +131,24 @@ public final class GunHud {
         graphics.drawString(font, trim(font, ammoType, 77), x, y + 32, MUTED, false);
     }
 
-    private static int reserveAmmo(Player player, Item ammoItem) {
+    private static int reserveAmmo(Player player, AbstractGunItem gun) {
         if (player.isCreative()) {
             return 999;
         }
 
+        Item ammoItem = gun.getAmmoItem();
+        AmmoType ammoType = gun.getAmmoType();
         int count = 0;
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
             if (stack.getItem() == ammoItem) {
                 count += stack.getCount();
+            } else if (stack.getItem() instanceof AmmoBoxItem box && box.getAmmoType() == ammoType) {
+                count += box.countRounds(stack);
             }
         }
         return count;

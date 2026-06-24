@@ -6,24 +6,29 @@ import com.xirc.gunmetal.registry.GunmetalSoundRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
-public class M16Item extends AbstractGunItem {
-    public M16Item(Properties settings) {
+public class AssaultRifleItem extends AbstractGunItem {
+    public AssaultRifleItem(Properties settings) {
         super(settings);
     }
 
     @Override
+    protected AmmoType ammoType() {
+        return AmmoType.RIFLE;
+    }
+
+    @Override
     protected ResourceLocation statsId() {
-        return GunStatsDefaults.M16_ID;
+        return GunStatsDefaults.ASSAULT_RIFLE_ID;
     }
 
     @Override
     protected GunStats defaultStats() {
-        return GunStatsDefaults.M16;
+        return GunStatsDefaults.ASSAULT_RIFLE;
     }
 
     @Override
     protected SoundEvent fireSound() {
-        return GunmetalSoundRegistry.M16_SHOT.get();
+        return GunmetalSoundRegistry.ASSAULT_RIFLE_SHOT.get();
     }
 
     @Override

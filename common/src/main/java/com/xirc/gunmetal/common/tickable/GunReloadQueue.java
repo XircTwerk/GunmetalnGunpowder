@@ -39,6 +39,32 @@ public final class GunReloadQueue {
                 continue;
             }
 
+            ServerLevel world = server.getLevel(reload.getWorldKey());
+            if (world == null) {
+                continue;
+            }
+            ItemStack stack = user.getItemInHand(reload.getHand());
+
+            if (reload.hasParts()) {
+                reload.decreasePartTimer();
+                if (reload.getPartTimer() > 0) {
+                    activeReloads.add(reload);
+                    continue;
+                }
+
+                // Current part finished; start the next one or finish the reload.
+                reload.advancePart();
+                if (!reload.partsFinished()) {
+                    if (stack.getItem() instanceof AbstractGunItem gun) {
+                        gun.playReloadPart(stack, world, user, reload.currentPart());
+                    }
+                    activeReloads.add(reload);
+                } else if (stack.getItem() instanceof AbstractGunItem gun) {
+                    gun.finishReload(stack, world, user);
+                }
+                continue;
+            }
+
             int timer = reload.getTimer();
             if (timer > 0) {
                 reload.decreaseTimer();
@@ -46,12 +72,6 @@ public final class GunReloadQueue {
                 continue;
             }
 
-            ServerLevel world = server.getLevel(reload.getWorldKey());
-            if (world == null) {
-                continue;
-            }
-
-            ItemStack stack = user.getItemInHand(reload.getHand());
             if (stack.getItem() instanceof AbstractGunItem gun) {
                 gun.finishReload(stack, world, user);
             }

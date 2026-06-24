@@ -20,6 +20,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -213,10 +214,22 @@ public abstract class AbstractGunItem extends Item {
     }
 
     /**
+     * Ammo family this gun fires. Determines which round item feeds it and which
+     * ammo boxes it can reload from.
+     */
+    protected AmmoType ammoType() {
+        return AmmoType.PISTOL;
+    }
+
+    public AmmoType getAmmoType() {
+        return ammoType();
+    }
+
+    /**
      * Item consumed for each loaded round unless the player is in creative mode.
      */
     protected Item ammoItem() {
-        return GunmetalItems.BULLET.get();
+        return GunmetalItems.roundFor(ammoType());
     }
 
     public Item getAmmoItem() {
@@ -299,13 +312,22 @@ public abstract class AbstractGunItem extends Item {
             return InteractionResultHolder.fail(itemStack);
         }
 
-        int reloadTicks = reloadDurationTicks(itemStack);
-        markAnimation(itemStack, reloadAnimation(itemStack));
+        List<ReloadPart> parts = reloadParts(itemStack);
+        int reloadTicks = 0;
+        for (ReloadPart part : parts) {
+            reloadTicks += part.ticks();
+        }
+        ReloadPart firstPart = parts.get(0);
+        markAnimation(itemStack, firstPart.animation());
         if (!world.isClientSide) {
             data.putBoolean(RELOADING_ID, true);
             addCooldown(user, itemStack, reloadTicks);
-            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadTicks, heldHand(user, itemStack)));
+            GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadTicks, heldHand(user, itemStack), parts));
             world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.5f, 1.0f);
+            SoundEvent firstPartSound = reloadPartSound(firstPart.animation());
+            if (firstPartSound != null) {
+                world.playSound(null, user.getX(), user.getY(), user.getZ(), firstPartSound, SoundSource.PLAYERS, 0.7f, 1.0f);
+            }
         }
 
         return InteractionResultHolder.success(itemStack);
@@ -350,6 +372,37 @@ public abstract class AbstractGunItem extends Item {
 
     protected int reloadDurationTicks(ItemStack stack) {
         return reloadDurationTicks();
+    }
+
+    /**
+     * Ordered reload segments for this gun. The reload plays each part in turn, so a
+     * sound can be attached per part via {@link #reloadPartSound(String)}.
+     * <p>
+     * The default is a single part covering the whole reload animation, which keeps
+     * non-split guns behaving exactly as before.
+     */
+    protected List<ReloadPart> reloadParts(ItemStack stack) {
+        return List.of(new ReloadPart(reloadAnimation(stack), reloadDurationTicks(stack)));
+    }
+
+    /**
+     * Sound played when a reload part begins. Defaults to silent so existing audio is
+     * unchanged; override per part name to give each reload step its own sound.
+     */
+    protected SoundEvent reloadPartSound(String part) {
+        return null;
+    }
+
+    /**
+     * Starts a reload part: marks its animation and plays its per-part sound (if any).
+     * Called by the reload queue as each part begins.
+     */
+    public void playReloadPart(ItemStack stack, Level world, LivingEntity user, ReloadPart part) {
+        markAnimation(stack, part.animation());
+        SoundEvent sound = reloadPartSound(part.animation());
+        if (sound != null && !world.isClientSide) {
+            world.playSound(null, user.getX(), user.getY(), user.getZ(), sound, SoundSource.PLAYERS, 0.7f, 1.0f);
+        }
     }
 
     public boolean isAutomatic() {
@@ -453,17 +506,48 @@ public abstract class AbstractGunItem extends Item {
     }
 
     protected boolean hasAmmoInInventory(Player player) {
-        return player.getInventory().contains(new ItemStack(ammoItem()));
+        Item ammo = ammoItem();
+        Inventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (stack.getItem() == ammo) {
+                return true;
+            }
+            if (stack.getItem() instanceof AmmoBoxItem box
+                    && box.getAmmoType() == ammoType()
+                    && box.countRounds(stack) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected int consumeAmmoFromInventory(Player player, int amount) {
+        Item ammo = ammoItem();
+        Inventory inventory = player.getInventory();
         int consumed = 0;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (stack.getItem() == ammoItem()) {
+
+        // Loose rounds first.
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (stack.getItem() == ammo) {
                 int toConsume = Math.min(amount - consumed, stack.getCount());
                 stack.shrink(toConsume);
                 consumed += toConsume;
+                if (consumed >= amount) {
+                    return consumed;
+                }
+            }
+        }
+
+        // Then pull from any matching ammo boxes.
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (stack.getItem() instanceof AmmoBoxItem box && box.getAmmoType() == ammoType()) {
+                consumed += box.consumeRounds(stack, amount - consumed);
                 if (consumed >= amount) {
                     return consumed;
                 }

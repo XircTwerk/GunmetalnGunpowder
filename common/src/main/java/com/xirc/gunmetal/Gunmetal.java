@@ -8,6 +8,7 @@ import com.xirc.gunmetal.registry.GunmetalEntityTypes;
 import com.xirc.gunmetal.registry.GunmetalGameRules;
 import com.xirc.gunmetal.registry.GunmetalGuns;
 import com.xirc.gunmetal.registry.GunmetalItems;
+import com.xirc.gunmetal.registry.GunmetalMenus;
 import com.xirc.gunmetal.registry.GunmetalPacketRegistry;
 import com.xirc.gunmetal.registry.GunmetalSoundRegistry;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,7 @@ public final class Gunmetal {
         GunmetalEntityTypes.init();
         GunmetalSoundRegistry.init();
         GunmetalCreativeTabs.init();
+        GunmetalMenus.init();
         GunmetalPacketRegistry.init();
         GunmetalEvents.init();
         ReloadListenerRegistry.register(PackType.SERVER_DATA, GunStatsManager.INSTANCE, id("gun_stats"));

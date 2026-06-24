@@ -2,9 +2,7 @@ package com.xirc.gunmetal.registry;
 
 import com.xirc.gunmetal.Gunmetal;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
-import com.xirc.gunmetal.common.item.BerettaItem;
-import com.xirc.gunmetal.common.item.M16Item;
-import com.xirc.gunmetal.common.item.PlaceholderGunItem;
+import com.xirc.gunmetal.common.item.*;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -16,8 +14,8 @@ public interface GunmetalGuns {
 
     RegistrySupplier<AbstractGunItem> BERETTA = GUNS.register("beretta",
             () -> new BerettaItem(settings()));
-    RegistrySupplier<AbstractGunItem> M16 = GUNS.register("m16",
-            () -> new M16Item(settings()));
+    RegistrySupplier<AbstractGunItem> ASSAULT_RIFLE = GUNS.register("assault_rifle",
+            () -> new AssaultRifleItem(settings()));
 
     static Item.Properties settings() {
         return new Item.Properties().rarity(Rarity.RARE).stacksTo(1);

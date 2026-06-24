@@ -3,7 +3,7 @@ package com.xirc.gunmetal.client.renderer.item;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.math.Axis;
 import com.xirc.gunmetal.Gunmetal;
-import com.xirc.gunmetal.client.animation.M16Animator;
+import com.xirc.gunmetal.client.animation.AssaultRifleAnimator;
 import mod.azure.azurelib.model.AzBone;
 import mod.azure.azurelib.render.AzRendererPipelineContext;
 import mod.azure.azurelib.render.item.AzItemRenderer;
@@ -18,16 +18,13 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Set;
 import java.util.UUID;
 
-public class M16ItemRenderer extends AzItemRenderer {
+public class AssaultRifleItemRenderer extends AzItemRenderer {
     private static final Set<String> EFFECT_BONES = Set.of("effects", "fire");
-    private static final Set<String> FOREGRIP_BONES = Set.of("handgaurd");
-    private static final ResourceLocation EFFECTS_TEXTURE = Gunmetal.id("textures/m16/effects.png");
-    private static final ResourceLocation FOREGRIP_TEXTURE = Gunmetal.id("textures/m16/foregrip_plastic.png");
+    private static final ResourceLocation EFFECTS_TEXTURE = Gunmetal.id("textures/assault_rifle/effects.png");
     private static final RenderType EFFECTS_RENDER_TYPE = RenderType.entityTranslucentEmissive(EFFECTS_TEXTURE);
-    private static final RenderType FOREGRIP_RENDER_TYPE = RenderType.entityCutoutNoCull(FOREGRIP_TEXTURE);
     private static final DisplayPose DEFAULT_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Tweak these values when adjusting how the M16 sits in each view.
+    // Tweak these values when adjusting how the assault rifle sits in each view.
     private static final DisplayPose GUI_POSE = new DisplayPose(0.0, -0.2, 0.0, 0.0f, 0.0f, 0.0f, 0.75f);
     private static final DisplayPose FIRST_PERSON_LEFT_POSE = new DisplayPose(0.0, -0.35, 0.0, 0.0f, 0.0f, 0.0f, 0.9f);
     private static final DisplayPose FIRST_PERSON_RIGHT_POSE = new DisplayPose(0.0, -0.35, 0.0, 0.0f, 0.0f, 0.0f, 0.9f);
@@ -36,11 +33,11 @@ public class M16ItemRenderer extends AzItemRenderer {
     private static final DisplayPose GROUND_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 0.8f);
     private static final DisplayPose FIXED_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 0.8f);
 
-    public M16ItemRenderer(ResourceLocation geoModel, ResourceLocation texture) {
+    public AssaultRifleItemRenderer(ResourceLocation geoModel, ResourceLocation texture) {
         super(AzItemRendererConfig.builder(geoModel, texture)
-                .setAnimatorProvider(M16Animator::new)
-                .setBoneTextureOverrideProvider(M16ItemRenderer::effectTexture)
-                .setBoneRenderTypeOverrideProvider(M16ItemRenderer::effectRenderType)
+                .setAnimatorProvider(AssaultRifleAnimator::new)
+                .setBoneTextureOverrideProvider(AssaultRifleItemRenderer::effectTexture)
+                .setBoneRenderTypeOverrideProvider(AssaultRifleItemRenderer::effectRenderType)
                 .build());
     }
 
@@ -67,7 +64,7 @@ public class M16ItemRenderer extends AzItemRenderer {
             return;
         }
 
-        boolean visible = getAnimator() instanceof M16Animator gun && gun.isFireEffectVisible();
+        boolean visible = getAnimator() instanceof AssaultRifleAnimator gun && gun.isFireEffectVisible();
         for (String boneName : EFFECT_BONES) {
             model.getBone(boneName).ifPresent(bone -> {
                 float scale = visible ? 1.0f : 0.0f;
@@ -80,23 +77,11 @@ public class M16ItemRenderer extends AzItemRenderer {
     }
 
     private static ResourceLocation effectTexture(AzBone bone) {
-        if (EFFECT_BONES.contains(bone.getName())) {
-            return EFFECTS_TEXTURE;
-        }
-        if (FOREGRIP_BONES.contains(bone.getName())) {
-            return FOREGRIP_TEXTURE;
-        }
-        return null;
+        return EFFECT_BONES.contains(bone.getName()) ? EFFECTS_TEXTURE : null;
     }
 
     private static RenderType effectRenderType(AzBone bone) {
-        if (EFFECT_BONES.contains(bone.getName())) {
-            return EFFECTS_RENDER_TYPE;
-        }
-        if (FOREGRIP_BONES.contains(bone.getName())) {
-            return FOREGRIP_RENDER_TYPE;
-        }
-        return null;
+        return EFFECT_BONES.contains(bone.getName()) ? EFFECTS_RENDER_TYPE : null;
     }
 
     private static DisplayPose poseFor(ItemDisplayContext context) {
@@ -130,10 +115,10 @@ public class M16ItemRenderer extends AzItemRenderer {
         }
     }
 
-    public static M16ItemRenderer create() {
-        return new M16ItemRenderer(
-                Gunmetal.id("geo/m16.geo.json"),
-                Gunmetal.id("textures/m16/default.png")
+    public static AssaultRifleItemRenderer create() {
+        return new AssaultRifleItemRenderer(
+                Gunmetal.id("geo/assault_rifle.geo.json"),
+                Gunmetal.id("textures/assault_rifle/default.png")
         );
     }
 }

@@ -2,6 +2,7 @@ package com.xirc.gunmetal.client.animation;
 
 import com.xirc.gunmetal.Gunmetal;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
+import com.xirc.gunmetal.common.item.AmmoType;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.kosmx.playerAnim.api.TransformType;
 import dev.kosmx.playerAnim.api.firstPerson.FirstPersonConfiguration;
@@ -15,7 +16,6 @@ import dev.kosmx.playerAnim.core.data.gson.AnimationSerializing;
 import dev.kosmx.playerAnim.core.util.Vec3f;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
 import mod.azure.azurelib.AzureLib;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -46,7 +46,8 @@ public final class GunmetalAnimations {
     private static final float MAX_SIDE_AIM = 75.0f;
     private static final float SIDE_AIM_SMOOTHING = 0.35f;
 
-    private static final Map<String, KeyframeAnimation> LOCAL_ANIMATIONS = new HashMap<>();
+    // Player reload animations cached per source file (e.g. "beretta", "rifle").
+    private static final Map<String, Map<String, KeyframeAnimation>> LOCAL_ANIMATIONS = new HashMap<>();
     private static final Map<AbstractClientPlayer, GunAnimation> PLAYER_ANIMATIONS = new WeakHashMap<>();
     private static final Map<AbstractClientPlayer, Float> SIDE_AIM = new WeakHashMap<>();
     private static long lastMainHandSequence = Long.MIN_VALUE;
@@ -57,7 +58,6 @@ public final class GunmetalAnimations {
     private static String activeOffHandAnimation = "";
     private static int mainHandAnimationTicks;
     private static int offHandAnimationTicks;
-    private static boolean localAnimationsLoaded;
     private static boolean initialized;
 
     private GunmetalAnimations() {
@@ -163,13 +163,20 @@ public final class GunmetalAnimations {
 
         setLastSequence(mainHand, sequence);
         String animation = stack.getOrCreateTag().getString(AbstractGunItem.ANIMATION_ID);
+        String previous = mainHand ? activeMainHandAnimation : activeOffHandAnimation;
+        int previousTicks = mainHand ? mainHandAnimationTicks : offHandAnimationTicks;
         if (isFireAnimation(animation)) {
             setActiveAnimation(mainHand, animation, FIRE_ANIMATION_TICKS);
             stopPlayerAnimation(player);
         } else if (isReloadAnimation(animation)) {
+            // Reload is dispatched as a sequence of parts; keep the single arm clip playing
+            // across parts instead of restarting it on each part bump.
+            boolean continuingReload = isReloadAnimation(previous) && previousTicks > 0;
             setActiveAnimation(mainHand, animation, reloadAnimationTicks(animation));
-            stopPlayerAnimation(player);
-            playPlayerAnimation(player, animation);
+            if (!continuingReload) {
+                stopPlayerAnimation(player);
+                playPlayerAnimation(player, animation, playerAnimationFile(stack));
+            }
         }
     }
 
@@ -234,9 +241,9 @@ public final class GunmetalAnimations {
         return (float) Math.toRadians(Mth.clamp(Mth.wrapDegrees(player.getYHeadRot() - player.yBodyRot), -MAX_SIDE_AIM, MAX_SIDE_AIM));
     }
 
-    private static void playPlayerAnimation(AbstractClientPlayer player, String animationName) {
+    private static void playPlayerAnimation(AbstractClientPlayer player, String animationName, String file) {
         GunAnimation holder = getGunAnimation(player);
-        KeyframeAnimation animation = findPlayerAnimation(animationName);
+        KeyframeAnimation animation = findPlayerAnimation(animationName, file);
         if (holder == null || animation == null) {
             return;
         }
@@ -244,39 +251,46 @@ public final class GunmetalAnimations {
         holder.play(animationName, animation);
     }
 
-    private static KeyframeAnimation findPlayerAnimation(String animationName) {
-        KeyframeAnimation animation = PlayerAnimationRegistry.getAnimation(Gunmetal.id(animationName));
-        if (animation != null) {
-            return animation;
-        }
-
-        loadLocalAnimations();
-        animation = LOCAL_ANIMATIONS.get(animationName);
-        return animation != null ? animation : LOCAL_ANIMATIONS.get(playerAnimationFallback(animationName));
+    private static KeyframeAnimation findPlayerAnimation(String animationName, String file) {
+        Map<String, KeyframeAnimation> animations = loadLocalAnimations(file);
+        KeyframeAnimation animation = animations.get(animationName);
+        return animation != null ? animation : animations.get(playerAnimationFallback(animationName));
     }
 
-    private static void loadLocalAnimations() {
-        if (localAnimationsLoaded) {
-            return;
+    /** Player-animation source file for a gun: rifle ammo uses rifle.json, everything else beretta.json. */
+    private static String playerAnimationFile(ItemStack stack) {
+        if (stack.getItem() instanceof AbstractGunItem gun && gun.getAmmoType() == AmmoType.RIFLE) {
+            return "rifle";
         }
-        localAnimationsLoaded = true;
+        return "beretta";
+    }
+
+    private static Map<String, KeyframeAnimation> loadLocalAnimations(String file) {
+        Map<String, KeyframeAnimation> cached = LOCAL_ANIMATIONS.get(file);
+        if (cached != null) {
+            return cached;
+        }
+
+        Map<String, KeyframeAnimation> animations = new HashMap<>();
+        LOCAL_ANIMATIONS.put(file, animations);
 
         Optional<net.minecraft.server.packs.resources.Resource> resource = Minecraft.getInstance()
                 .getResourceManager()
-                .getResource(Gunmetal.id("player_animations/beretta.json"));
+                .getResource(Gunmetal.id("player_animations/" + file + ".json"));
         if (resource.isEmpty()) {
-            return;
+            return animations;
         }
 
         try (InputStream stream = resource.get().open()) {
             for (KeyframeAnimation animation : AnimationSerializing.deserializeAnimation(stream)) {
                 Object name = animation.extraData.get("name");
                 if (name != null) {
-                    LOCAL_ANIMATIONS.put(name.toString(), animation);
+                    animations.put(name.toString(), animation);
                 }
             }
         } catch (IOException ignored) {
         }
+        return animations;
     }
 
     private static void tickActiveAnimations(AbstractClientPlayer player) {
@@ -427,7 +441,7 @@ public final class GunmetalAnimations {
     }
 
     private static boolean isReloadAnimation(String animation) {
-        return "reload".equals(animation) || "reload_empty".equals(animation) || "deload".equals(animation);
+        return animation.startsWith("reload") || animation.startsWith("deload");
     }
 
     private static int reloadAnimationTicks(String animation) {
