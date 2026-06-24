@@ -6,11 +6,18 @@
     64
   ],
   "display": {
-    "thirdperson_righthand": {
+    "firstperson_righthand": {
       "translation": [
-        -0.5,
-        -8,
-        -0.5
+        -0,
+        -2.25,
+        -0
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        -0,
+        -2.25,
+        -0
       ]
     },
     "ground": {
@@ -22,19 +29,19 @@
     },
     "gui": {
       "rotation": [
-        0,
-        131,
-        0
+        90,
+        45,
+        -90
       ],
       "translation": [
-        3.5,
-        -6.5,
+        2.5,
+        -1,
         0
       ],
       "scale": [
-        1.94,
-        1.94,
-        1.94
+        1.4,
+        1.4,
+        1.4
       ]
     },
     "fixed": {
@@ -45,17 +52,17 @@
       ],
       "translation": [
         5,
-        -6.5,
+        -1.5,
         -0.5
       ],
       "scale": [
-        2.5,
+        2.53,
         2.53,
         2.53
       ]
     }
   },
   "textures": {
-    "particle": "minecraft:item/iron_ingot"
+    "particle": "beretta"
   }
 }

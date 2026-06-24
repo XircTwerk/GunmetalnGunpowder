@@ -25,13 +25,13 @@ public class BerettaItemRenderer extends AzItemRenderer {
     private static final DisplayPose DEFAULT_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
 
     // Tweak these values when adjusting how the Beretta sits in each view.
-    private static final DisplayPose GUI_POSE = new DisplayPose(0.25, -0.2, 0.05, 0.0f, 0.0f, 0.0f, 1.0f);
-    private static final DisplayPose FIRST_PERSON_LEFT_POSE = new DisplayPose(0.0, -0.3, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);;
-    private static final DisplayPose FIRST_PERSON_RIGHT_POSE = new DisplayPose(0.0, -0.3, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);;
-    private static final DisplayPose THIRD_PERSON_LEFT_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);;
-    private static final DisplayPose THIRD_PERSON_RIGHT_POSE =new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);;
-    private static final DisplayPose GROUND_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);;
-    private static final DisplayPose FIXED_POSE = new DisplayPose(0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);;
+    private static final DisplayPose GUI_POSE = new DisplayPose(-0.3f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+    private static final DisplayPose FIRST_PERSON_LEFT_POSE = new DisplayPose(0.0f, -0.2f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
+    private static final DisplayPose FIRST_PERSON_RIGHT_POSE = new DisplayPose(0.0f, -0.2f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
+    private static final DisplayPose THIRD_PERSON_LEFT_POSE = new DisplayPose(0.0f, -0.4f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
+    private static final DisplayPose THIRD_PERSON_RIGHT_POSE =new DisplayPose(0.0f, -0.4f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
+    private static final DisplayPose GROUND_POSE = new DisplayPose(0.0f, -0.5f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
+    private static final DisplayPose FIXED_POSE = new DisplayPose(0.0f, -0.5f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
 
     public BerettaItemRenderer(ResourceLocation geoModel, ResourceLocation texture) {
         super(AzItemRendererConfig.builder(geoModel, texture)

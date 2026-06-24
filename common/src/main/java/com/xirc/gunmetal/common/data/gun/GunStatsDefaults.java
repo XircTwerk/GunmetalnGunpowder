@@ -34,8 +34,8 @@ public final class GunStatsDefaults {
             5.56f,
             45.0f,
             1,
-            0,
-            3,
+            2,
+            2,
             29,
             29);
 

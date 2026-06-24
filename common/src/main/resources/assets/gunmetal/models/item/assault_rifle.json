@@ -5,7 +5,69 @@
     64,
     64
   ],
+  "display": {
+    "firstperson_righthand": {
+      "translation": [
+        -3.5,
+        -2.75,
+        -0.25
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        -3.5,
+        -2.75,
+        -0.25
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        90
+      ],
+      "translation": [
+        0,
+        -2.5,
+        0
+      ]
+    },
+    "gui": {
+      "rotation": [
+        90,
+        45,
+        -90
+      ],
+      "translation": [
+        0.75,
+        -1.75,
+        0
+      ],
+      "scale": [
+        0.76,
+        0.76,
+        0.76
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "translation": [
+        6.25,
+        0,
+        0
+      ],
+      "scale": [
+        2.36,
+        2.36,
+        2.36
+      ]
+    }
+  },
   "textures": {
-    "particle": "gunmetal:item/assault_rifle"
+    "particle": "effects"
   }
 }
