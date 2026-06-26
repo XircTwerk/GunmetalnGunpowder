@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gunmetal:item/shotgun_box"
+    "layer0": "gunmetal:item/storage/shotgun_box"
   }
 }

@@ -3,14 +3,19 @@ package com.xirc.gunmetal.client.hud;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
 import com.xirc.gunmetal.common.item.AmmoBoxItem;
 import com.xirc.gunmetal.common.item.AmmoType;
+import com.xirc.gunmetal.registry.GunmetalGuns;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix4f;
 
 public final class GunHud {
     private static final int WIDTH = 136;
@@ -24,6 +29,8 @@ public final class GunHud {
     private static final int HUD_DOWN_OFFSET = 7;
     private static final int AMMO_WIDTH = 78;
     private static final float STATE_SCALE = 0.75f;
+    private static final float PREVIEW_MODEL_SCALE = 16.0f;
+    private static final float ASSAULT_RIFLE_PREVIEW_MODEL_SCALE = 9.5f;
 
     private static final int TEXT = 0xFFE8E0CF;
     private static final int MUTED = 0xFF9C9485;
@@ -83,10 +90,29 @@ public final class GunHud {
 
     private static void drawPreview(GuiGraphics graphics, ItemStack stack, int x, int y) {
         graphics.pose().pushPose();
-        graphics.pose().translate(x + 1.0f, y + 2.0f, 0.0f);
-        graphics.pose().scale(1.8f, 1.8f, 1.0f);
-        graphics.renderItem(stack, 0, 0);
+        Minecraft minecraft = Minecraft.getInstance();
+        graphics.pose().translate(x + 16.0f, y + 16.0f, 150.0f);
+        graphics.pose().mulPoseMatrix(new Matrix4f().scaling(1.0f, -1.0f, 1.0f));
+        float scale = previewModelScale(stack);
+        graphics.pose().scale(scale, scale, scale);
+        var bufferSource = minecraft.renderBuffers().bufferSource();
+        minecraft.getItemRenderer().renderStatic(
+                stack,
+                ItemDisplayContext.FIXED,
+                LightTexture.FULL_BRIGHT,
+                OverlayTexture.NO_OVERLAY,
+                graphics.pose(),
+                bufferSource,
+                minecraft.level,
+                0);
+        bufferSource.endBatch();
         graphics.pose().popPose();
+    }
+
+    private static float previewModelScale(ItemStack stack) {
+        return stack.is(GunmetalGuns.ASSAULT_RIFLE.get())
+                ? ASSAULT_RIFLE_PREVIEW_MODEL_SCALE
+                : PREVIEW_MODEL_SCALE;
     }
 
     private static void drawDurability(GuiGraphics graphics, ItemStack stack, int x, int y, int width, int height) {

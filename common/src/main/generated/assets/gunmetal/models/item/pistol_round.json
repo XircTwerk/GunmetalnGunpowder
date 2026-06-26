@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gunmetal:item/pistol_round"
+    "layer0": "gunmetal:item/bullet/pistol/pistol_round"
   }
 }

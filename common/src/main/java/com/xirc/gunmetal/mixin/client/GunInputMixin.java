@@ -5,6 +5,7 @@ import com.xirc.gunmetal.common.item.AbstractGunItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -34,15 +35,20 @@ public class GunInputMixin {
     @Unique
     private boolean gunmetal$secondaryShotConsumed;
 
+    @Unique
+    private boolean gunmetal$semiAutoAttackHeld;
+
     @Inject(method = "handleKeybinds", at = @At("HEAD"))
     private void gunmetal$handleGunKeys(CallbackInfo ci) {
         if (!gunmetal$hasGunEquipped()) {
             gunmetal$shotConsumed = false;
             gunmetal$secondaryShotConsumed = false;
+            gunmetal$semiAutoAttackHeld = false;
             return;
         }
         if (!options.keyAttack.isDown()) {
             gunmetal$shotConsumed = false;
+            gunmetal$semiAutoAttackHeld = false;
         }
         if (!options.keyUse.isDown()) {
             gunmetal$secondaryShotConsumed = false;
@@ -54,16 +60,26 @@ public class GunInputMixin {
         }
         AbstractGunItem mainHandGun = gunmetal$mainHandGun();
         if (mainHandGun != null && mainHandGun.isAutomatic() && options.keyAttack.isDown()) {
-            gunmetal$shotConsumed = true;
-            GunmetalKeyMappings.shoot();
+            if (gunmetal$canRepeatFire(mainHandGun, player.getMainHandItem())) {
+                gunmetal$shotConsumed = true;
+                GunmetalKeyMappings.shoot();
+            } else if (!gunmetal$shotConsumed) {
+                gunmetal$shotConsumed = true;
+                GunmetalKeyMappings.shoot();
+            }
         }
         AbstractGunItem offhandGun = gunmetal$offhandGun();
         if (offhandGun != null) {
             if (offhandGun.isAutomatic() && options.keyUse.isDown()) {
                 while (options.keyUse.consumeClick()) {
                 }
-                gunmetal$secondaryShotConsumed = true;
-                GunmetalKeyMappings.shootOffhand();
+                if (gunmetal$canRepeatFire(offhandGun, player.getOffhandItem())) {
+                    gunmetal$secondaryShotConsumed = true;
+                    GunmetalKeyMappings.shootOffhand();
+                } else if (!gunmetal$secondaryShotConsumed) {
+                    gunmetal$secondaryShotConsumed = true;
+                    GunmetalKeyMappings.shootOffhand();
+                }
             } else {
                 while (options.keyUse.consumeClick()) {
                     if (!gunmetal$secondaryShotConsumed) {
@@ -77,8 +93,16 @@ public class GunInputMixin {
 
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
     private void gunmetal$shootGun(CallbackInfoReturnable<Boolean> cir) {
-        if (!gunmetal$hasMainHandGun()) {
+        AbstractGunItem mainHandGun = gunmetal$mainHandGun();
+        if (mainHandGun == null) {
             return;
+        }
+        if (!mainHandGun.isAutomatic()) {
+            if (gunmetal$semiAutoAttackHeld) {
+                cir.setReturnValue(false);
+                return;
+            }
+            gunmetal$semiAutoAttackHeld = true;
         }
         if (!gunmetal$shotConsumed) {
             gunmetal$shotConsumed = true;
@@ -121,5 +145,10 @@ public class GunInputMixin {
     @Unique
     private AbstractGunItem gunmetal$offhandGun() {
         return player != null && player.getOffhandItem().getItem() instanceof AbstractGunItem gun ? gun : null;
+    }
+
+    @Unique
+    private boolean gunmetal$canRepeatFire(AbstractGunItem gun, ItemStack stack) {
+        return player != null && (player.isCreative() || gun.getShots(stack) > 0) && !AbstractGunItem.isReloading(stack);
     }
 }

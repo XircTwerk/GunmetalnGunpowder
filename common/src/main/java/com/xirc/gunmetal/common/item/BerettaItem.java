@@ -55,4 +55,26 @@ public class BerettaItem extends AbstractGunItem {
                 new ReloadPart("deload_load", 7),
                 new ReloadPart("deload_end", 6));
     }
+
+    @Override
+    protected SoundEvent reloadPartSound(String part) {
+        return switch (part) {
+            case "reload_start", "deload_start" -> GunmetalSoundRegistry.WEAP_BOLT_OUT.get();
+            case "reload_load", "deload_load" -> GunmetalSoundRegistry.WEAP_MAGIN_PLASTIC.get();
+            case "reload_end", "deload_end" -> GunmetalSoundRegistry.WEAP_BOLT_OUT.get();
+            default -> null;
+        };
+    }
+
+    @Override
+    protected SoundEvent reloadPartEndSound(String part) {
+        return "reload_start".equals(part) || "deload_start".equals(part)
+                ? GunmetalSoundRegistry.WEAP_MAGDROP_PLASTIC.get()
+                : null;
+    }
+
+    @Override
+    protected SoundEvent reloadCompleteSound() {
+        return null;
+    }
 }

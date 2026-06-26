@@ -53,6 +53,9 @@ public final class GunReloadQueue {
                 }
 
                 // Current part finished; start the next one or finish the reload.
+                if (stack.getItem() instanceof AbstractGunItem gun) {
+                    gun.playReloadPartEnd(stack, world, user, reload.currentPart());
+                }
                 reload.advancePart();
                 if (!reload.partsFinished()) {
                     if (stack.getItem() instanceof AbstractGunItem gun) {

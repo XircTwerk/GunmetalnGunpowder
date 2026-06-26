@@ -286,6 +286,7 @@ public abstract class AbstractGunItem extends Item {
 
     private InteractionResultHolder<ItemStack> fireFromUse(Level world, Player user, ItemStack itemStack) {
         if (!canFire(user, itemStack)) {
+            playEmptyFireSound(world, user, itemStack);
             return InteractionResultHolder.fail(itemStack);
         }
         markAnimation(itemStack, fireAnimation(itemStack, user));
@@ -323,10 +324,12 @@ public abstract class AbstractGunItem extends Item {
             data.putBoolean(RELOADING_ID, true);
             addCooldown(user, itemStack, reloadTicks);
             GunReloadQueue.enqueue(new DimensionData(user, world.dimension(), reloadTicks, heldHand(user, itemStack), parts));
-            world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.5f, 1.0f);
+            if (!hasReloadPartSounds(parts)) {
+                world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 1.0f, 1.0f);
+            }
             SoundEvent firstPartSound = reloadPartSound(firstPart.animation());
             if (firstPartSound != null) {
-                world.playSound(null, user.getX(), user.getY(), user.getZ(), firstPartSound, SoundSource.PLAYERS, 0.7f, 1.0f);
+                world.playSound(null, user.getX(), user.getY(), user.getZ(), firstPartSound, SoundSource.PLAYERS, 1.4f, 1.0f);
             }
         }
 
@@ -335,23 +338,7 @@ public abstract class AbstractGunItem extends Item {
 
     public static boolean handleLeftClick(Player player) {
         ItemStack mainHand = player.getMainHandItem();
-        if (!(mainHand.getItem() instanceof AbstractGunItem gun)) {
-            return false;
-        }
-
-        Level world = player.level();
-
-        if (!gun.canFire(player, mainHand)) {
-            return true;
-        }
-
-        gun.markAnimation(mainHand, gun.fireAnimation(mainHand, player));
-        if (!world.isClientSide) {
-            gun.addCooldown(player, mainHand, gun.inputCooldownTicks());
-            gun.fire(mainHand, world, player);
-        }
-
-        return true;
+        return mainHand.getItem() instanceof AbstractGunItem;
     }
 
     protected String fireAnimation() {
@@ -393,6 +380,14 @@ public abstract class AbstractGunItem extends Item {
         return null;
     }
 
+    protected SoundEvent reloadPartEndSound(String part) {
+        return null;
+    }
+
+    protected SoundEvent reloadCompleteSound() {
+        return reloadSound();
+    }
+
     /**
      * Starts a reload part: marks its animation and plays its per-part sound (if any).
      * Called by the reload queue as each part begins.
@@ -401,8 +396,24 @@ public abstract class AbstractGunItem extends Item {
         markAnimation(stack, part.animation());
         SoundEvent sound = reloadPartSound(part.animation());
         if (sound != null && !world.isClientSide) {
-            world.playSound(null, user.getX(), user.getY(), user.getZ(), sound, SoundSource.PLAYERS, 0.7f, 1.0f);
+            world.playSound(null, user.getX(), user.getY(), user.getZ(), sound, SoundSource.PLAYERS, 1.4f, 1.0f);
         }
+    }
+
+    public void playReloadPartEnd(ItemStack stack, Level world, LivingEntity user, ReloadPart part) {
+        SoundEvent sound = reloadPartEndSound(part.animation());
+        if (sound != null && !world.isClientSide) {
+            world.playSound(null, user.getX(), user.getY(), user.getZ(), sound, SoundSource.PLAYERS, 1.4f, 1.0f);
+        }
+    }
+
+    private boolean hasReloadPartSounds(List<ReloadPart> parts) {
+        for (ReloadPart part : parts) {
+            if (reloadPartSound(part.animation()) != null || reloadPartEndSound(part.animation()) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isAutomatic() {
@@ -426,6 +437,12 @@ public abstract class AbstractGunItem extends Item {
             return false;
         }
         return getShots(stack) >= 1 || player.isCreative();
+    }
+
+    private void playEmptyFireSound(Level world, Player user, ItemStack stack) {
+        if (!world.isClientSide && !user.isCreative() && !isReloading(stack) && getShots(stack) < 1) {
+            world.playSound(null, user.getX(), user.getY(), user.getZ(), GunmetalSoundRegistry.WEAP_TRIGGER_HAMMER.get(), SoundSource.PLAYERS, 0.7f, 1.0f);
+        }
     }
 
     public void fire(ItemStack itemStack, Level world, LivingEntity user) {
@@ -468,7 +485,10 @@ public abstract class AbstractGunItem extends Item {
             int roundsLoaded = player.isCreative() ? roundsNeeded : consumeAmmoFromInventory(player, roundsNeeded);
             if (roundsLoaded > 0) {
                 data.putInt(SHOTS_ID, shots + roundsLoaded);
-                world.playSound(null, user.getX(), user.getY(), user.getZ(), reloadSound(), SoundSource.PLAYERS, 0.7f, 1.0f);
+                SoundEvent completeSound = reloadCompleteSound();
+                if (completeSound != null) {
+                    world.playSound(null, user.getX(), user.getY(), user.getZ(), completeSound, SoundSource.PLAYERS, 1.4f, 1.0f);
+                }
             }
             data.putBoolean(RELOADING_ID, false);
             clearCooldown(itemStack);

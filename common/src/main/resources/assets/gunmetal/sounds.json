@@ -18,16 +18,14 @@
   "reload": {
     "sounds": [
       {
-        "name": "gunmetal:generic/handling/weap_magout_plastic",
-        "type": "event"
+        "name": "gunmetal:generic/mag/weap_magout_plastic"
       }
     ]
   },
   "load": {
     "sounds": [
       {
-        "name": "gunmetal:generic/handling/weap_round_in_chamber_mag",
-        "type": "event"
+        "name": "gunmetal:generic/handling/weap_round_in_chamber_mag"
       }
     ]
   },
@@ -50,6 +48,34 @@
     "sounds": [
       {
         "name": "gunmetal:gun/assault_rifle/m1a_fire_close1"
+      }
+    ]
+  },
+  "weap_trigger_hammer": {
+    "sounds": [
+      {
+        "name": "gunmetal:generic/weap_trigger_hammer"
+      }
+    ]
+  },
+  "weap_bolt_out": {
+    "sounds": [
+      {
+        "name": "gunmetal:generic/bolt/weap_bolt_out"
+      }
+    ]
+  },
+  "weap_magdrop_plastic": {
+    "sounds": [
+      {
+        "name": "gunmetal:generic/mag/weap_magdrop_plastic"
+      }
+    ]
+  },
+  "weap_magin_plastic": {
+    "sounds": [
+      {
+        "name": "gunmetal:generic/mag/weap_magin_plastic"
       }
     ]
   }
