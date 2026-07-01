@@ -27,6 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -271,10 +272,14 @@ public abstract class AbstractGunItem extends Item {
     }
 
     public boolean tryShoot(Player user, ItemStack itemStack) {
+        return tryShoot(user, itemStack, null);
+    }
+
+    public boolean tryShoot(Player user, ItemStack itemStack, @Nullable Vec3 muzzle) {
         if (user.isSpectator()) {
             return false;
         }
-        return fireFromUse(user.level(), user, itemStack).getResult().consumesAction();
+        return fireFromUse(user.level(), user, itemStack, muzzle).getResult().consumesAction();
     }
 
     public boolean tryReload(Player user, ItemStack itemStack) {
@@ -284,7 +289,7 @@ public abstract class AbstractGunItem extends Item {
         return reloadFromUse(user.level(), user, itemStack).getResult().consumesAction();
     }
 
-    private InteractionResultHolder<ItemStack> fireFromUse(Level world, Player user, ItemStack itemStack) {
+    private InteractionResultHolder<ItemStack> fireFromUse(Level world, Player user, ItemStack itemStack, @Nullable Vec3 muzzle) {
         if (!canFire(user, itemStack)) {
             playEmptyFireSound(world, user, itemStack);
             return InteractionResultHolder.fail(itemStack);
@@ -292,7 +297,7 @@ public abstract class AbstractGunItem extends Item {
         markAnimation(itemStack, fireAnimation(itemStack, user));
         if (!world.isClientSide) {
             addCooldown(user, itemStack, inputCooldownTicks());
-            fire(itemStack, world, user);
+            fire(itemStack, world, user, muzzle);
         }
         return InteractionResultHolder.success(itemStack);
     }
@@ -445,7 +450,19 @@ public abstract class AbstractGunItem extends Item {
         }
     }
 
+    /**
+     * Default tracer colour as a packed RGB int (alpha ignored). Override per gun to
+     * change the tracer colour for that weapon's ammo type.
+     */
+    protected int tracerColor() {
+        return 0xFFE08A; // yellow
+    }
+
     public void fire(ItemStack itemStack, Level world, LivingEntity user) {
+        fire(itemStack, world, user, null);
+    }
+
+    public void fire(ItemStack itemStack, Level world, LivingEntity user, @Nullable Vec3 muzzle) {
         CompoundTag data = itemStack.getOrCreateTag();
         int shots = data.getInt(SHOTS_ID);
 
@@ -459,7 +476,27 @@ public abstract class AbstractGunItem extends Item {
         world.playSound(null, user.getX(), user.getY(), user.getZ(), fireSound(), SoundSource.PLAYERS, 1f, 1f);
 
         BulletProjectile bullet = new BulletProjectile(world, user, caliber(), bulletLength(), stunTicks(), 0);
-        bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 10, 0f);
+        bullet.setNoGravity(true);
+        bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 15, 0f);
+        bullet.setTracerColor(tracerColor());
+
+        // Spawn the bullet at the gun model's effects bone (sent by the shooting client)
+        // so the tracer streak originates from the barrel. The position is only trusted
+        // within a couple of blocks of the eye; otherwise fall back to an approximation
+        // offset toward the gun hand so third-person tracers don't start at the eyes.
+        Vec3 eye = user.getEyePosition();
+        Vec3 spawn;
+        if (muzzle != null && muzzle.distanceToSqr(eye) < 6.25) {
+            spawn = muzzle;
+        } else {
+            Vec3 right = Vec3.directionFromRotation(0.0f, user.getYRot() + 90.0f);
+            spawn = eye.add(user.getLookAngle().scale(0.7)).add(right.scale(0.3)).add(0.0, -0.25, 0.0);
+        }
+        bullet.setPos(spawn.x, spawn.y, spawn.z);
+        bullet.xo = spawn.x;
+        bullet.yo = spawn.y;
+        bullet.zo = spawn.z;
+        bullet.setTracerPath(spawn, bullet.getDeltaMovement());
 
         HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread(), blockDamage(), bullet);
 

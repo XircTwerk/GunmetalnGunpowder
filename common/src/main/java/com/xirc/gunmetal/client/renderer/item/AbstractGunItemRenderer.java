@@ -2,13 +2,18 @@ package com.xirc.gunmetal.client.renderer.item;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.math.Axis;
+import com.xirc.gunmetal.client.tracer.MuzzleTracker;
 import mod.azure.azurelib.render.AzRendererPipelineContext;
 import mod.azure.azurelib.render.item.AzItemRenderer;
 import mod.azure.azurelib.render.item.AzItemRendererConfig;
 import mod.azure.azurelib.render.item.AzItemRendererPipeline;
 import mod.azure.azurelib.render.item.AzItemRendererPipelineContext;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector4f;
 
 import java.util.UUID;
 
@@ -39,6 +44,46 @@ public abstract class AbstractGunItemRenderer extends AzItemRenderer {
                     Lighting.setupFor3DItems();
                 }
                 afterGunPreRender(context);
+            }
+
+            @Override
+            public void postRender(AzRendererPipelineContext<UUID, ItemStack> context, boolean isReRender) {
+                super.postRender(context, isReRender);
+                var itemContext = (AzItemRendererPipelineContext) context;
+                var displayCtx = itemContext.getTransformType();
+                if (displayCtx != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                        && displayCtx != ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+                    return;
+                }
+                var model = context.bakedModel();
+                if (model == null) return;
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player == null) return;
+                model.getBone("effects").ifPresent(bone -> {
+                    // modelRenderTranslations is captured just before per-bone rendering and encodes
+                    // the full model-to-view transform (arm position, display pose, AzureLib offset).
+                    // Transforming the effects bone's pivot (pixels → /16 → blocks) gives its exact
+                    // view-space position. This is then converted to world-space via camera vectors.
+                    Vector4f pivotVS = new Vector4f(
+                            bone.getPivotX() / 16f,
+                            bone.getPivotY() / 16f,
+                            bone.getPivotZ() / 16f,
+                            1f);
+                    modelRenderTranslations.transform(pivotVS);
+
+                    Camera cam = mc.gameRenderer.getMainCamera();
+                    Vec3 camPos = cam.getPosition();
+                    Vec3 look = mc.player.getLookAngle();
+                    org.joml.Vector3f upVF = cam.getUpVector();
+                    Vec3 up = new Vec3(upVF.x, upVF.y, upVF.z);
+                    Vec3 right = look.cross(up);
+
+                    Vec3 muzzle = camPos
+                            .add(right.scale(pivotVS.x))
+                            .add(up.scale(pivotVS.y))
+                            .subtract(look.scale(pivotVS.z));
+                    MuzzleTracker.record(mc.player.getUUID(), muzzle);
+                });
             }
         };
     }

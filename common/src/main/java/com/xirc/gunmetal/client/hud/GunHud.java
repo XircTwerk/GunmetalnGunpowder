@@ -89,22 +89,18 @@ public final class GunHud {
     }
 
     private static void drawPreview(GuiGraphics graphics, ItemStack stack, int x, int y) {
-        graphics.pose().pushPose();
         Minecraft minecraft = Minecraft.getInstance();
+        var bufferSource = minecraft.renderBuffers().bufferSource();
+        float scale = previewModelScale(stack);
+
+        graphics.pose().pushPose();
         graphics.pose().translate(x + 16.0f, y + 16.0f, 150.0f);
         graphics.pose().mulPoseMatrix(new Matrix4f().scaling(1.0f, -1.0f, 1.0f));
-        float scale = previewModelScale(stack);
         graphics.pose().scale(scale, scale, scale);
-        var bufferSource = minecraft.renderBuffers().bufferSource();
         minecraft.getItemRenderer().renderStatic(
-                stack,
-                ItemDisplayContext.FIXED,
-                LightTexture.FULL_BRIGHT,
-                OverlayTexture.NO_OVERLAY,
-                graphics.pose(),
-                bufferSource,
-                minecraft.level,
-                0);
+                stack, ItemDisplayContext.FIXED,
+                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                graphics.pose(), bufferSource, minecraft.level, 0);
         bufferSource.endBatch();
         graphics.pose().popPose();
     }

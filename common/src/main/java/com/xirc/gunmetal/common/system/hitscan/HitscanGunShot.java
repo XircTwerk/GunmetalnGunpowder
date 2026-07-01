@@ -18,6 +18,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.function.Consumer;
+
 public final class HitscanGunShot {
     public static final float CLOSE_DAMAGE_MULT = 3.0f;
     public static final double BASELINE_DISTANCE = 8.0;
@@ -42,17 +44,22 @@ public final class HitscanGunShot {
     }
 
     public static void fire(LivingEntity user, float damage, float range, float knockback, int barrels, int pelletsPerBarrel, float spread, float blockDamage, Projectile projectile) {
+        fire(user, damage, range, knockback, barrels, pelletsPerBarrel, spread, blockDamage, projectile, null);
+    }
+
+    public static void fire(LivingEntity user, float damage, float range, float knockback, int barrels, int pelletsPerBarrel, float spread, float blockDamage, Projectile projectile, Consumer<Vec3> onImpact) {
         Level world = user.level();
         int pellets = Math.max(1, pelletsPerBarrel);
         float pelletDamage = damage / pellets;
         float pelletBlockDamage = blockDamage / pellets;
         int totalPellets = Math.max(1, barrels) * pellets;
         for (int i = 0; i < totalPellets; i++) {
-            fireRay(user, world, pelletDamage, range, knockback, spread, pelletBlockDamage, projectile);
+            Vec3 impact = fireRay(user, world, pelletDamage, range, knockback, spread, pelletBlockDamage, projectile);
+            if (onImpact != null) onImpact.accept(impact);
         }
     }
 
-    private static void fireRay(LivingEntity user, Level world, float pelletDamage, float range, float knockback, float spread, float pelletBlockDamage, Projectile projectile) {
+    private static Vec3 fireRay(LivingEntity user, Level world, float pelletDamage, float range, float knockback, float spread, float pelletBlockDamage, Projectile projectile) {
         Vec3 eye = user.getEyePosition();
         RandomSource random = user.getRandom();
         Vec3 look = user.getViewVector(1.0f).add(
@@ -85,6 +92,7 @@ public final class HitscanGunShot {
             damageBlock(world, blockTrace.hit, pelletBlockDamage);
         }
 
+        return impact;
     }
 
     private static BlockTrace traceBlocks(LivingEntity user, Level world, Vec3 start, Vec3 end, Vec3 direction, float blockDamage, Projectile projectile) {

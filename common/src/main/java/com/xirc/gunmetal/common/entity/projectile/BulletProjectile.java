@@ -25,6 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 public class BulletProjectile extends AbstractArrow {
     private int stunTicks;
@@ -32,6 +33,11 @@ public class BulletProjectile extends AbstractArrow {
     private float mass;
 
     private static final EntityDataAccessor<Float> CALIBER = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> TRACER_COLOR = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.INT);
+    // Spawn point and launch velocity, synced once so the client can draw the tracer as a
+    // straight-line extrapolation instead of chasing the entity's laggy synced position.
+    private static final EntityDataAccessor<Vector3f> TRACER_SPAWN = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.VECTOR3);
+    private static final EntityDataAccessor<Vector3f> TRACER_VELOCITY = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.VECTOR3);
 
     public BulletProjectile(EntityType<? extends BulletProjectile> entityType, Level world) {
         super(entityType, world);
@@ -61,9 +67,30 @@ public class BulletProjectile extends AbstractArrow {
         return entityData.get(CALIBER);
     }
 
+    public void setTracerColor(int rgb) { entityData.set(TRACER_COLOR, rgb); }
+    public int getTracerColor() { return entityData.get(TRACER_COLOR); }
+
+    public void setTracerPath(Vec3 spawn, Vec3 velocity) {
+        entityData.set(TRACER_SPAWN, new Vector3f((float) spawn.x, (float) spawn.y, (float) spawn.z));
+        entityData.set(TRACER_VELOCITY, new Vector3f((float) velocity.x, (float) velocity.y, (float) velocity.z));
+    }
+
+    public Vec3 getTracerSpawn() {
+        Vector3f v = entityData.get(TRACER_SPAWN);
+        return new Vec3(v.x, v.y, v.z);
+    }
+
+    public Vec3 getTracerVelocity() {
+        Vector3f v = entityData.get(TRACER_VELOCITY);
+        return new Vec3(v.x, v.y, v.z);
+    }
+
     @Override
     protected void defineSynchedData() {
         entityData.define(CALIBER, 9f);
+        entityData.define(TRACER_COLOR, 0xFFE08A); // yellow default
+        entityData.define(TRACER_SPAWN, new Vector3f());
+        entityData.define(TRACER_VELOCITY, new Vector3f());
         super.defineSynchedData();
     }
 
@@ -109,6 +136,9 @@ public class BulletProjectile extends AbstractArrow {
             } else {
                 setDeltaMovement(impactVec.add(normal).scale(0.5 / hardness));
                 if (!level().isClientSide()) {
+                    // The tracer extrapolates the launch path client-side, which stops being
+                    // valid once the bullet bounces — zero it so the streak ends at the wall.
+                    entityData.set(TRACER_VELOCITY, new Vector3f());
                     playServerSound(GunmetalSoundRegistry.BULLET_RICOCHET.get(), position());
                 }
             }

@@ -1,6 +1,6 @@
 package com.xirc.gunmetal.client.input;
 
-import com.mojang.blaze3d.platform.InputConstants;
+import com.xirc.gunmetal.client.tracer.MuzzleTracker;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
 import com.xirc.gunmetal.registry.GunmetalPacketRegistry;
 import dev.architectury.event.events.client.ClientTickEvent;
@@ -12,6 +12,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
@@ -70,6 +71,12 @@ public interface GunmetalKeyMappings {
 
     static void send(GunmetalPacketRegistry.GunInput input) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        NetworkManager.sendToServer(GunmetalPacketRegistry.GUN_INPUT, GunmetalPacketRegistry.write(input, buf));
+        Minecraft minecraft = Minecraft.getInstance();
+        // The effects-bone position is only captured while the first-person hand renders,
+        // so in third/second person it would be stale — fall back to the server default.
+        Vec3 muzzle = minecraft.player != null && minecraft.options.getCameraType().isFirstPerson()
+                ? MuzzleTracker.get(minecraft.player.getUUID())
+                : null;
+        NetworkManager.sendToServer(GunmetalPacketRegistry.GUN_INPUT, GunmetalPacketRegistry.write(input, muzzle, buf));
     }
 }
