@@ -16,30 +16,26 @@
 				"rightArm": {
 					"position": {
 						"0": {
-							"post": [0, 0, 0],
-							"lerp_mode": "catmullrom"
+							"vector": [0, 0, 0]
 						},
 						"0.08333": {
 							"vector": [0, -0.5, 0.5],
 							"easing": "easeInOutBack"
 						},
 						"0.125": {
-							"post": [0, 0, 0],
-							"lerp_mode": "catmullrom"
+							"vector": [0, 0, 0]
 						}
 					},
 					"rotation": {
 						"0": {
-							"post": [-90, 0, 0],
-							"lerp_mode": "catmullrom"
+							"vector": [-90, 0, 0]
 						},
 						"0.0417": {
 							"vector": [-105, 0, 0],
 							"easing": "easeInOutCirc"
 						},
 						"0.125": {
-							"post": [-90, 0, 0],
-							"lerp_mode": "catmullrom"
+							"vector": [-90, 0, 0]
 						}
 					}
 				}
