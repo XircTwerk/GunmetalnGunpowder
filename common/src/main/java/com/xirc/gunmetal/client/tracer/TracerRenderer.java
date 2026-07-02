@@ -19,8 +19,7 @@ import org.joml.Matrix4f;
 @Environment(EnvType.CLIENT)
 public final class TracerRenderer {
     private static final double LENGTH = 1.2;
-    // Per-tick drag applied by AbstractArrow; the extrapolated distance must decay the
-    // same way or the tracer tip drifts ahead of the real bullet on long flights.
+    // AbstractArrow applies 0.99 drag per tick; match it or the tip outruns the bullet.
     private static final double DRAG = 0.99;
 
     private TracerRenderer() {}
@@ -40,8 +39,7 @@ public final class TracerRenderer {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        // Depth test stays on so tracers are occluded by the world and the shooter's own
-        // body in third person, instead of drawing through everything.
+        // Depth-tested so tracers don't draw through walls or the shooter in third person.
         RenderSystem.enableDepthTest();
         RenderSystem.lineWidth(4.0f);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -53,11 +51,10 @@ public final class TracerRenderer {
         for (Entity e : mc.level.entitiesForRendering()) {
             if (!(e instanceof BulletProjectile bullet)) continue;
 
-            // The bullet flies too fast for vanilla entity sync (motion packets clamp
-            // velocity, position corrections rubber-band), so the tracer ignores the
-            // entity's synced position entirely. It extrapolates along the synced spawn
-            // point + launch velocity — a straight line by construction — and only uses
-            // the entity itself to know when the bullet is gone.
+            // Entity sync can't keep up at bullet speeds (clamped motion packets,
+            // rubber-banding), so extrapolate from the spawn point along the launch
+            // velocity instead of following the synced position. The entity itself
+            // only gates despawn and colour.
             Vec3 velocity = bullet.getTracerVelocity();
             double speed = velocity.length();
             if (speed < 1e-3) continue;

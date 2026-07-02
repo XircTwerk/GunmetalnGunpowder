@@ -3,6 +3,7 @@ package com.xirc.gunmetal.common.item;
 import com.xirc.gunmetal.common.data.gun.GunStats;
 import com.xirc.gunmetal.common.data.gun.GunStatsManager;
 import com.xirc.gunmetal.common.entity.projectile.BulletProjectile;
+import com.xirc.gunmetal.common.system.GunAiming;
 import com.xirc.gunmetal.common.system.hitscan.HitscanGunShot;
 import com.xirc.gunmetal.common.tickable.GunReloadQueue;
 import com.xirc.gunmetal.common.util.DimensionData;
@@ -458,6 +459,23 @@ public abstract class AbstractGunItem extends Item {
         return 0xFFE08A; // yellow
     }
 
+    // Spread scales with how much the shooter is moving; aiming (GunAiming) stacks on top.
+    private static final float STANDING_SPREAD_MULT = 1.5f;
+    private static final float WALKING_SPREAD_MULT = 2.0f;
+    private static final float SPRINTING_SPREAD_MULT = 2.5f;
+
+    private static float movementSpreadMultiplier(LivingEntity user) {
+        if (user.isSprinting()) {
+            return SPRINTING_SPREAD_MULT;
+        }
+        double dx = user.getX() - user.xOld;
+        double dz = user.getZ() - user.zOld;
+        if (dx * dx + dz * dz > 1.0e-4) {
+            return WALKING_SPREAD_MULT;
+        }
+        return STANDING_SPREAD_MULT;
+    }
+
     public void fire(ItemStack itemStack, Level world, LivingEntity user) {
         fire(itemStack, world, user, null);
     }
@@ -480,10 +498,8 @@ public abstract class AbstractGunItem extends Item {
         bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 15, 0f);
         bullet.setTracerColor(tracerColor());
 
-        // Spawn the bullet at the gun model's effects bone (sent by the shooting client)
-        // so the tracer streak originates from the barrel. The position is only trusted
-        // within a couple of blocks of the eye; otherwise fall back to an approximation
-        // offset toward the gun hand so third-person tracers don't start at the eyes.
+        // Spawn at the gun's effects bone if the client sent a plausible position,
+        // otherwise approximate a barrel position beside the head.
         Vec3 eye = user.getEyePosition();
         Vec3 spawn;
         if (muzzle != null && muzzle.distanceToSqr(eye) < 6.25) {
@@ -498,7 +514,11 @@ public abstract class AbstractGunItem extends Item {
         bullet.zo = spawn.z;
         bullet.setTracerPath(spawn, bullet.getDeltaMovement());
 
-        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread(), blockDamage(), bullet);
+        float spread = spread() * movementSpreadMultiplier(user);
+        if (GunAiming.isAiming(user)) {
+            spread *= GunAiming.SPREAD_MULTIPLIER;
+        }
+        HitscanGunShot.fire(user, damage(), range(), knockback(), barrels(), pelletsPerBarrel(), spread, blockDamage(), bullet);
 
         world.addFreshEntity(bullet);
 

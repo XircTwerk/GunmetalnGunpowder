@@ -2,6 +2,8 @@ package com.xirc.gunmetal.client.renderer.item;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.math.Axis;
+import com.xirc.gunmetal.client.aim.GunAimHandler;
+import com.xirc.gunmetal.client.aim.SightTracker;
 import com.xirc.gunmetal.client.tracer.MuzzleTracker;
 import mod.azure.azurelib.render.AzRendererPipelineContext;
 import mod.azure.azurelib.render.item.AzItemRenderer;
@@ -10,6 +12,8 @@ import mod.azure.azurelib.render.item.AzItemRendererPipeline;
 import mod.azure.azurelib.render.item.AzItemRendererPipelineContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -27,6 +31,11 @@ public abstract class AbstractGunItemRenderer extends AzItemRenderer {
     private static final DisplayPose GROUND_POSE = new DisplayPose(0.0f, -0.5f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
     private static final DisplayPose FIXED_POSE = new DisplayPose(0.0f, -0.5f, 0.0, 0.0f, 0.0f, 0.0f, 1.0f);
 
+    // Vertical/depth slide of the first-person gun at full aim; tune in-game.
+    // Horizontal centering happens in GunAimHandTransformMixin.
+    private static final float AIM_CENTER_Y = 0.15f;
+    private static final float AIM_CENTER_Z = 0.0f;
+
     protected AbstractGunItemRenderer(AzItemRendererConfig config) {
         super(config);
     }
@@ -38,6 +47,7 @@ public abstract class AbstractGunItemRenderer extends AzItemRenderer {
             public void preRender(AzRendererPipelineContext<UUID, ItemStack> context, boolean isReRender) {
                 var itemContext = (AzItemRendererPipelineContext) context;
                 poseFor(itemContext.getTransformType()).apply(context);
+                applyAimPose(context, itemContext.getTransformType());
 
                 super.preRender(context, isReRender);
                 if (itemContext.getTransformType() == ItemDisplayContext.GUI) {
@@ -59,6 +69,20 @@ public abstract class AbstractGunItemRenderer extends AzItemRenderer {
                 if (model == null) return;
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player == null) return;
+                boolean rightCtx = displayCtx == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
+                boolean rightMainArm = mc.player.getMainArm() == HumanoidArm.RIGHT;
+                InteractionHand hand = rightCtx == rightMainArm ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+                if (hand == InteractionHand.MAIN_HAND) {
+                    model.getBone("back_sight").ifPresent(bone -> {
+                        Vector4f pivotVS = new Vector4f(
+                                bone.getPivotX() / 16f,
+                                bone.getPivotY() / 16f,
+                                bone.getPivotZ() / 16f,
+                                1f);
+                        modelRenderTranslations.transform(pivotVS);
+                        SightTracker.recordMeasured(new Vec3(pivotVS.x, pivotVS.y, pivotVS.z));
+                    });
+                }
                 model.getBone("effects").ifPresent(bone -> {
                     // modelRenderTranslations is captured just before per-bone rendering and encodes
                     // the full model-to-view transform (arm position, display pose, AzureLib offset).
@@ -82,13 +106,54 @@ public abstract class AbstractGunItemRenderer extends AzItemRenderer {
                             .add(right.scale(pivotVS.x))
                             .add(up.scale(pivotVS.y))
                             .subtract(look.scale(pivotVS.z));
-                    MuzzleTracker.record(mc.player.getUUID(), muzzle);
+                    MuzzleTracker.record(mc.player.getUUID(), hand, muzzle);
                 });
             }
         };
     }
 
     protected void afterGunPreRender(AzRendererPipelineContext<UUID, ItemStack> context) {
+    }
+
+    /**
+     * X-axis rotation at full aim, in degrees. Lets guns whose models sit slightly
+     * tilted be levelled while aiming; flip the sign if it tips the wrong way.
+     */
+    protected float aimPitchDegrees() {
+        return 0.0f;
+    }
+
+    /** Vertical slide at full aim; override per gun if its sights need a different height. */
+    protected float aimRaise() {
+        return AIM_CENTER_Y;
+    }
+
+    /**
+     * Depth slide at full aim. Negative pushes the gun away from the camera; use it
+     * when a tall model clips the near plane while aimed.
+     */
+    protected float aimSetback() {
+        return AIM_CENTER_Z;
+    }
+
+    /** Raises the first-person gun toward eye level while aiming down sights. */
+    private void applyAimPose(AzRendererPipelineContext<UUID, ItemStack> context, ItemDisplayContext displayCtx) {
+        if (displayCtx != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                && displayCtx != ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+            return;
+        }
+        float aim = GunAimHandler.progress(Minecraft.getInstance().getFrameTime());
+        if (aim <= 0f) {
+            return;
+        }
+        // Vertical placement comes from the back_sight measurement when available;
+        // aimRaise is only the fallback for guns without that bone.
+        float raise = SightTracker.rest() != null ? 0.0f : aimRaise();
+        context.poseStack().translate(0.0f, raise * aim, aimSetback() * aim);
+        float pitch = aimPitchDegrees();
+        if (pitch != 0.0f) {
+            context.poseStack().mulPose(Axis.XP.rotationDegrees(pitch * aim));
+        }
     }
 
     private static DisplayPose poseFor(ItemDisplayContext context) {

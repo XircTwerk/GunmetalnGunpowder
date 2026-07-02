@@ -1,5 +1,6 @@
 package com.xirc.gunmetal.client.input;
 
+import com.xirc.gunmetal.client.aim.GunAimHandler;
 import com.xirc.gunmetal.client.tracer.MuzzleTracker;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
 import com.xirc.gunmetal.registry.GunmetalPacketRegistry;
@@ -12,6 +13,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
@@ -45,6 +47,7 @@ public interface GunmetalKeyMappings {
     }
 
     static void tick(Minecraft minecraft) {
+        GunAimHandler.tick(minecraft);
         if (minecraft.player == null || minecraft.screen != null) {
             return;
         }
@@ -72,11 +75,16 @@ public interface GunmetalKeyMappings {
     static void send(GunmetalPacketRegistry.GunInput input) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         Minecraft minecraft = Minecraft.getInstance();
-        // The effects-bone position is only captured while the first-person hand renders,
-        // so in third/second person it would be stale — fall back to the server default.
-        Vec3 muzzle = minecraft.player != null && minecraft.options.getCameraType().isFirstPerson()
-                ? MuzzleTracker.get(minecraft.player.getUUID())
-                : null;
+        // The effects bone is only captured while the first-person hand renders;
+        // in any other camera mode the stored position would be stale.
+        Vec3 muzzle = null;
+        if (minecraft.player != null && minecraft.options.getCameraType().isFirstPerson()) {
+            if (input == GunmetalPacketRegistry.GunInput.SHOOT) {
+                muzzle = MuzzleTracker.get(minecraft.player.getUUID(), InteractionHand.MAIN_HAND);
+            } else if (input == GunmetalPacketRegistry.GunInput.SHOOT_OFFHAND) {
+                muzzle = MuzzleTracker.get(minecraft.player.getUUID(), InteractionHand.OFF_HAND);
+            }
+        }
         NetworkManager.sendToServer(GunmetalPacketRegistry.GUN_INPUT, GunmetalPacketRegistry.write(input, muzzle, buf));
     }
 }

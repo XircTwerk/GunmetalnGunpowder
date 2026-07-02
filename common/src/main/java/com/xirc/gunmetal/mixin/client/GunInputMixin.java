@@ -68,6 +68,8 @@ public class GunInputMixin {
                 GunmetalKeyMappings.shoot();
             }
         }
+        // With a gun in the offhand, right-click fires it (aiming is disabled then);
+        // right-click only aims when the main hand alone holds a gun.
         AbstractGunItem offhandGun = gunmetal$offhandGun();
         if (offhandGun != null) {
             if (offhandGun.isAutomatic() && options.keyUse.isDown()) {

@@ -2,6 +2,7 @@ package com.xirc.gunmetal.registry;
 
 import com.xirc.gunmetal.Gunmetal;
 import com.xirc.gunmetal.common.item.AbstractGunItem;
+import com.xirc.gunmetal.common.system.GunAiming;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -30,6 +31,13 @@ public interface GunmetalPacketRegistry {
             case SHOOT -> shootPreferredGun(player, muzzle);
             case SHOOT_OFFHAND -> shootOffhandGun(player, muzzle);
             case RELOAD -> reloadPreferredGun(player);
+            case AIM_START -> {
+                if (player.getMainHandItem().getItem() instanceof AbstractGunItem
+                        && !(player.getOffhandItem().getItem() instanceof AbstractGunItem)) {
+                    GunAiming.set(player, true);
+                }
+            }
+            case AIM_STOP -> GunAiming.set(player, false);
         }
     }
 
@@ -74,6 +82,8 @@ public interface GunmetalPacketRegistry {
     enum GunInput {
         SHOOT,
         SHOOT_OFFHAND,
-        RELOAD
+        RELOAD,
+        AIM_START,
+        AIM_STOP
     }
 }

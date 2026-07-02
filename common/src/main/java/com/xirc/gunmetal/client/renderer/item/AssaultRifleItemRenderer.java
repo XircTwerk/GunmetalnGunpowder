@@ -26,6 +26,22 @@ public class AssaultRifleItemRenderer extends AbstractGunItemRenderer {
     }
 
     @Override
+    protected float aimSetback() {
+        // The tall receiver clips the near plane when aimed; tune in-game.
+        return -0.2f;
+    }
+
+    //@Override
+    //protected float aimPitchDegrees() {
+    //    return 2f;
+    //}
+//
+    //@Override
+    //protected float aimRaise() {
+    //    return 0.15f;
+    //}
+
+    @Override
     protected void afterGunPreRender(AzRendererPipelineContext<UUID, ItemStack> context) {
         var model = context.bakedModel();
         if (model == null) {

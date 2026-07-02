@@ -34,8 +34,7 @@ public class BulletProjectile extends AbstractArrow {
 
     private static final EntityDataAccessor<Float> CALIBER = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> TRACER_COLOR = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.INT);
-    // Spawn point and launch velocity, synced once so the client can draw the tracer as a
-    // straight-line extrapolation instead of chasing the entity's laggy synced position.
+    // Spawn point and launch velocity for the tracer, synced once at fire time.
     private static final EntityDataAccessor<Vector3f> TRACER_SPAWN = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Vector3f> TRACER_VELOCITY = SynchedEntityData.defineId(BulletProjectile.class, EntityDataSerializers.VECTOR3);
 
@@ -136,8 +135,7 @@ public class BulletProjectile extends AbstractArrow {
             } else {
                 setDeltaMovement(impactVec.add(normal).scale(0.5 / hardness));
                 if (!level().isClientSide()) {
-                    // The tracer extrapolates the launch path client-side, which stops being
-                    // valid once the bullet bounces — zero it so the streak ends at the wall.
+                    // The straight-line tracer is wrong after a bounce; end the streak here.
                     entityData.set(TRACER_VELOCITY, new Vector3f());
                     playServerSound(GunmetalSoundRegistry.BULLET_RICOCHET.get(), position());
                 }

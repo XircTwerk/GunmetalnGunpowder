@@ -25,6 +25,16 @@ public class BerettaItemRenderer extends AbstractGunItemRenderer {
                 .build());
     }
 
+    //@Override
+    //protected float aimPitchDegrees() {
+    //    return -2f;
+    //}
+//
+    //@Override
+    //protected float aimRaise() {
+    //    return 0.165f;
+    //}
+
     @Override
     protected void afterGunPreRender(AzRendererPipelineContext<UUID, ItemStack> context) {
         var model = context.bakedModel();
