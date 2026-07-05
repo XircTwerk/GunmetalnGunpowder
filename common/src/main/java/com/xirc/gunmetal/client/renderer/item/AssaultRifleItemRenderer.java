@@ -31,16 +31,6 @@ public class AssaultRifleItemRenderer extends AbstractGunItemRenderer {
         return 0.4f;
     }
 
-    //@Override
-    //protected float aimPitchDegrees() {
-    //    return 2f;
-    //}
-//
-    //@Override
-    //protected float aimRaise() {
-    //    return 0.15f;
-    //}
-
     @Override
     protected void afterGunPreRender(AzRendererPipelineContext<UUID, ItemStack> context) {
         var model = context.bakedModel();
