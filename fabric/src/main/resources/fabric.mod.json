@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "id": "gunmetal",
+  "id": "milicraft",
   "version": "${version}",
-  "name": "Gunmetal N' Gunpowder",
-  "description": "Gunmetal N' Gunpowder.",
+  "name": "MiliCraft",
+  "description": "MiliCraft.",
   "authors": [
     "Me!"
   ],
   "contact": {},
   "license": "CC0-1.0",
-  "icon": "assets/gunmetal/icon.png",
+  "icon": "assets/milicraft/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.xirc.gunmetal.fabric.GunmetalFabric"
+      "com.xirc.milicraft.fabric.MilicraftFabric"
     ],
     "client": [
-      "com.xirc.gunmetal.fabric.client.GunmetalFabricClient"
+      "com.xirc.milicraft.fabric.client.MilicraftFabricClient"
     ]
   },
   "mixins": [
-    "gunmetal.mixins.json"
+    "milicraft.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",

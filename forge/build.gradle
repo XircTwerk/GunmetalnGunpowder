@@ -4,7 +4,7 @@ plugins {
 
 loom {
     forge {
-        mixinConfig "gunmetal.mixins.json"
+        mixinConfig "milicraft.mixins.json"
     }
 }
 

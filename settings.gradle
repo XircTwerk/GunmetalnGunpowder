@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'gunmetal'
+rootProject.name = 'milicraft'
 
 include 'common'
 include 'fabric'

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "id": "gunmetal_datagen",
+  "id": "milicraft_datagen",
   "version": "${version}",
-  "name": "Gunmetal Datagen",
-  "description": "Data generation for Gunmetal N' Gunpowder.",
+  "name": "Milicraft Datagen",
+  "description": "Data generation for MiliCraft.",
   "license": "CC0-1.0",
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "com.xirc.gunmetal.datagen.GunmetalDataGen"
+      "com.xirc.milicraft.datagen.MilicraftDataGen"
     ]
   },
   "depends": {

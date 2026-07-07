@@ -1,0 +1,21 @@
+{
+  "entity.milicraft.bullet": "Bullet",
+  "itemgroup.milicraft.main": "MiliCraft",
+  "key.categories.milicraft": "MiliCraft",
+  "key.milicraft.interact": "Interact",
+  "key.milicraft.reload": "Reload",
+  "item.milicraft.beretta": "Beretta",
+  "item.milicraft.assault_rifle": "Assault Rifle",
+  "item.milicraft.placeholder_gun": "Placeholder Gun",
+  "item.milicraft.pistol_round": "Pistol Round",
+  "item.milicraft.rifle_round": "Rifle Round",
+  "item.milicraft.shotgun_shell": "Shotgun Shell",
+  "item.milicraft.pistol_box": "Pistol Ammo Box",
+  "item.milicraft.rifle_box": "Rifle Ammo Box",
+  "item.milicraft.shotgun_box": "Shotgun Ammo Box",
+  "tooltip.milicraft.ammo_box.rounds": "Rounds:",
+  "tooltip.milicraft.gun.ammo": "Ammo:",
+  "tooltip.milicraft.gun.fire": "Right-click to fire.",
+  "tooltip.milicraft.gun.reload": "Sneak right-click to reload.",
+  "tooltip.milicraft.gun.reloading": "Reloading..."
+}

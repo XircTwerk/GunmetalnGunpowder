@@ -4,44 +4,44 @@ loaderVersion = "[47,)"
 license = "Insert License Here"
 
 [[mods]]
-modId = "gunmetal"
+modId = "milicraft"
 version = "${version}"
-displayName = "Gunmetal N' Gunpowder"
+displayName = "MiliCraft"
 authors = "Me!"
 description = '''
-Gunmetal N' Gunpowder.
+MiliCraft.
 '''
 #logoFile = ""
 
-[[dependencies.gunmetal]]
+[[dependencies.milicraft]]
 modId = "forge"
 mandatory = true
 versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.gunmetal]]
+[[dependencies.milicraft]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.gunmetal]]
+[[dependencies.milicraft]]
 modId = "architectury"
 mandatory = true
 versionRange = "[9.2.14,)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.gunmetal]]
+[[dependencies.milicraft]]
 modId = "playeranimator"
 mandatory = true
 versionRange = "[1.0.2-rc1+1.20,)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.gunmetal]]
+[[dependencies.milicraft]]
 modId = "azurelib"
 mandatory = true
 versionRange = "[3.1.11,)"
