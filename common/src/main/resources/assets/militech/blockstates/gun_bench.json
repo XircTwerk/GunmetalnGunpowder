@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "militech:block/gun_bench" },
+    "facing=south": { "model": "militech:block/gun_bench", "y": 180 },
+    "facing=west": { "model": "militech:block/gun_bench", "y": 270 },
+    "facing=east": { "model": "militech:block/gun_bench", "y": 90 }
+  }
+}

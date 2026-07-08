@@ -1,0 +1,82 @@
+{
+  "bulletricochet": {
+    "sounds": [
+      {
+        "name": "minecraft:block.metal.hit",
+        "type": "event"
+      }
+    ]
+  },
+  "bulletpenetrate": {
+    "sounds": [
+      {
+        "name": "minecraft:block.metal.break",
+        "type": "event"
+      }
+    ]
+  },
+  "reload": {
+    "sounds": [
+      {
+        "name": "militech:generic/mag/weap_magout_plastic"
+      }
+    ]
+  },
+  "load": {
+    "sounds": [
+      {
+        "name": "militech:generic/handling/weap_round_in_chamber_mag"
+      }
+    ]
+  },
+  "revolver_fire": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.firework_rocket.blast",
+        "type": "event"
+      }
+    ]
+  },
+  "beretta_m9_shot": {
+    "sounds": [
+      {
+        "name": "militech:gun/beretta/fiveseven_fire_close"
+      }
+    ]
+  },
+  "assault_rifle_shot": {
+    "sounds": [
+      {
+        "name": "militech:gun/assault_rifle/m1a_fire_close1"
+      }
+    ]
+  },
+  "weap_trigger_hammer": {
+    "sounds": [
+      {
+        "name": "militech:generic/weap_trigger_hammer"
+      }
+    ]
+  },
+  "weap_bolt_out": {
+    "sounds": [
+      {
+        "name": "militech:generic/bolt/weap_bolt_out"
+      }
+    ]
+  },
+  "weap_magdrop_plastic": {
+    "sounds": [
+      {
+        "name": "militech:generic/mag/weap_magdrop_plastic"
+      }
+    ]
+  },
+  "weap_magin_plastic": {
+    "sounds": [
+      {
+        "name": "militech:generic/mag/weap_magin_plastic"
+      }
+    ]
+  }
+}

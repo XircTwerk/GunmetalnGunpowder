@@ -1,0 +1,11 @@
+{
+  "category": "pistol",
+  "parts": {
+    "barrel": 1,
+    "component": 1,
+    "frame": 1,
+    "magazine": 1,
+    "mechanism": 1
+  },
+  "result": "militech:beretta"
+}
