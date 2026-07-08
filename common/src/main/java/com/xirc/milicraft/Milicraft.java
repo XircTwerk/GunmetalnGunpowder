@@ -1,8 +1,11 @@
 package com.xirc.milicraft;
 
+import com.xirc.milicraft.common.data.gun.GunAssemblyManager;
 import com.xirc.milicraft.common.data.gun.GunStatsManager;
 import com.xirc.milicraft.common.event.MilicraftEvents;
 import dev.architectury.registry.ReloadListenerRegistry;
+import com.xirc.milicraft.registry.MilicraftBlockEntities;
+import com.xirc.milicraft.registry.MilicraftBlocks;
 import com.xirc.milicraft.registry.MilicraftCreativeTabs;
 import com.xirc.milicraft.registry.MilicraftEntityTypes;
 import com.xirc.milicraft.registry.MilicraftGameRules;
@@ -22,6 +25,8 @@ public final class Milicraft {
 
     public static void init() {
         MilicraftGameRules.init();
+        MilicraftBlocks.init();
+        MilicraftBlockEntities.init();
         MilicraftItems.init();
         MilicraftGuns.init();
         MilicraftEntityTypes.init();
@@ -31,6 +36,7 @@ public final class Milicraft {
         MilicraftPacketRegistry.init();
         MilicraftEvents.init();
         ReloadListenerRegistry.register(PackType.SERVER_DATA, GunStatsManager.INSTANCE, id("gun_stats"));
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, GunAssemblyManager.INSTANCE, id("gun_assembly"));
     }
 
     public static ResourceLocation id(String path) {

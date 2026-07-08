@@ -2,6 +2,7 @@ package com.xirc.milicraft.client;
 
 import com.xirc.milicraft.client.animation.MilicraftAnimations;
 import com.xirc.milicraft.client.gui.AmmoBoxScreen;
+import com.xirc.milicraft.client.gui.GunBenchScreen;
 import com.xirc.milicraft.client.hud.GunHud;
 import com.xirc.milicraft.client.input.MilicraftKeyMappings;
 import com.xirc.milicraft.client.renderer.item.MilicraftItemRenderers;
@@ -24,7 +25,9 @@ public final class MilicraftClient {
         }
         MilicraftItemRenderers.register();
         MilicraftAnimations.init();
+        GunDataSyncClient.init();
         GunHud.init();
         MenuRegistry.registerScreenFactory(MilicraftMenus.AMMO_BOX.get(), AmmoBoxScreen::new);
+        MenuRegistry.registerScreenFactory(MilicraftMenus.GUN_BENCH.get(), GunBenchScreen::new);
     }
 }

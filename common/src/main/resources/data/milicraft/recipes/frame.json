@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ii",
+    "ii"
+  ],
+  "key": {
+    "i": { "item": "minecraft:iron_ingot" }
+  },
+  "result": {
+    "item": "milicraft:frame"
+  }
+}

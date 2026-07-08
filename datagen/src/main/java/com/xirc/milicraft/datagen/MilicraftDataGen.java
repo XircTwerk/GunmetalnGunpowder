@@ -1,6 +1,7 @@
 package com.xirc.milicraft.datagen;
 
 import com.xirc.milicraft.Milicraft;
+import com.xirc.milicraft.datagen.providers.GunAssemblyProvider;
 import com.xirc.milicraft.datagen.providers.GunStatsProvider;
 import com.xirc.milicraft.datagen.providers.assets.MilicraftModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -17,5 +18,6 @@ public final class MilicraftDataGen implements DataGeneratorEntrypoint {
         FabricDataGenerator.Pack pack = generator.createPack();
         pack.addProvider(MilicraftModelProvider::new);
         pack.addProvider(GunStatsProvider::new);
+        pack.addProvider(GunAssemblyProvider::new);
     }
 }

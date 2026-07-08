@@ -28,6 +28,17 @@ public final class GunStatsManager extends SimpleJsonResourceReloadListener {
         return Optional.ofNullable(STATS.get(id));
     }
 
+    /** Snapshot of the loaded stats, for syncing to clients. */
+    public static Map<ResourceLocation, GunStats> snapshot() {
+        return Map.copyOf(STATS);
+    }
+
+    /** Replaces the loaded stats; used by the client-side sync handler. */
+    public static void setStats(Map<ResourceLocation, GunStats> stats) {
+        STATS.clear();
+        STATS.putAll(stats);
+    }
+
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> resources, ResourceManager resourceManager, ProfilerFiller profiler) {
         Map<ResourceLocation, GunStats> loaded = new HashMap<>();
@@ -41,5 +52,6 @@ public final class GunStatsManager extends SimpleJsonResourceReloadListener {
         });
         STATS.clear();
         STATS.putAll(loaded);
+        GunDataSync.broadcast();
     }
 }

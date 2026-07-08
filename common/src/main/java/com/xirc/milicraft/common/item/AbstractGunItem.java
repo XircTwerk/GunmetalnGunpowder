@@ -52,6 +52,10 @@ public abstract class AbstractGunItem extends Item {
         return GunStatsManager.get(statsId()).orElse(defaultStats());
     }
 
+    public GunStats getStats() {
+        return stats();
+    }
+
     /**
      * Maximum ammo stored in this gun's item NBT.
      * <p>

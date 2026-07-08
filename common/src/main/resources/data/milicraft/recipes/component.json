@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    { "item": "minecraft:iron_nugget" },
+    { "item": "minecraft:redstone" }
+  ],
+  "result": {
+    "item": "milicraft:component",
+    "count": 2
+  }
+}

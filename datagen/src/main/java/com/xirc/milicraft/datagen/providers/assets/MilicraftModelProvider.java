@@ -34,6 +34,11 @@ public class MilicraftModelProvider extends FabricModelProvider {
         generateFlatItem(generator, MilicraftItems.PISTOL_BOX.get(), "item/storage/pistol_box");
         generateFlatItem(generator, MilicraftItems.RIFLE_BOX.get(), "item/storage/rifle_box");
         generateFlatItem(generator, MilicraftItems.SHOTGUN_BOX.get(), "item/storage/shotgun_box");
+        generateFlatItem(generator, MilicraftItems.FRAME.get(), "item/crafting/frame");
+        generateFlatItem(generator, MilicraftItems.BARREL.get(), "item/crafting/barrel");
+        generateFlatItem(generator, MilicraftItems.MECHANISM.get(), "item/crafting/mechanism");
+        generateFlatItem(generator, MilicraftItems.COMPONENT.get(), "item/crafting/component");
+        generateFlatItem(generator, MilicraftItems.MAGAZINE.get(), "item/storage/magazine");
     }
 
     private static void generateFlatItem(ItemModelGenerators generator, Item item, String texturePath) {

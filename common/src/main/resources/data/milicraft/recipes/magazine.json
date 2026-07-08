@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "in",
+    "ii"
+  ],
+  "key": {
+    "i": { "item": "minecraft:iron_ingot" },
+    "n": { "item": "minecraft:iron_nugget" }
+  },
+  "result": {
+    "item": "milicraft:magazine"
+  }
+}

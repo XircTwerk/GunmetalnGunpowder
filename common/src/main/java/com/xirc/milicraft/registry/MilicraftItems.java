@@ -4,9 +4,13 @@ import com.xirc.milicraft.Milicraft;
 import com.xirc.milicraft.common.item.AmmoBoxItem;
 import com.xirc.milicraft.common.item.AmmoItem;
 import com.xirc.milicraft.common.item.AmmoType;
+import com.xirc.milicraft.common.item.BlueprintItem;
+import com.xirc.milicraft.common.item.GunPartItem;
+import com.xirc.milicraft.common.item.GunPartType;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
 public interface MilicraftItems {
@@ -19,6 +23,26 @@ public interface MilicraftItems {
     RegistrySupplier<Item> PISTOL_BOX = ITEMS.register("pistol_box", () -> new AmmoBoxItem(boxSettings(), AmmoType.PISTOL));
     RegistrySupplier<Item> RIFLE_BOX = ITEMS.register("rifle_box", () -> new AmmoBoxItem(boxSettings(), AmmoType.RIFLE));
     RegistrySupplier<Item> SHOTGUN_BOX = ITEMS.register("shotgun_box", () -> new AmmoBoxItem(boxSettings(), AmmoType.SHOTGUN));
+
+    RegistrySupplier<Item> FRAME = ITEMS.register("frame", () -> new GunPartItem(settings(), GunPartType.FRAME));
+    RegistrySupplier<Item> BARREL = ITEMS.register("barrel", () -> new GunPartItem(settings(), GunPartType.BARREL));
+    RegistrySupplier<Item> MECHANISM = ITEMS.register("mechanism", () -> new GunPartItem(settings(), GunPartType.MECHANISM));
+    RegistrySupplier<Item> COMPONENT = ITEMS.register("component", () -> new GunPartItem(settings(), GunPartType.COMPONENT));
+    RegistrySupplier<Item> MAGAZINE = ITEMS.register("magazine", () -> new GunPartItem(settings(), GunPartType.MAGAZINE));
+
+    RegistrySupplier<Item> GUN_BENCH = ITEMS.register("gun_bench", () -> new BlockItem(MilicraftBlocks.GUN_BENCH.get(), settings()));
+
+    RegistrySupplier<Item> BLUEPRINT = ITEMS.register("blueprint", () -> new BlueprintItem(settings().stacksTo(1)));
+
+    static Item partFor(GunPartType type) {
+        return switch (type) {
+            case FRAME -> FRAME.get();
+            case BARREL -> BARREL.get();
+            case MECHANISM -> MECHANISM.get();
+            case COMPONENT -> COMPONENT.get();
+            case MAGAZINE -> MAGAZINE.get();
+        };
+    }
 
     static Item.Properties settings() {
         return new Item.Properties();
