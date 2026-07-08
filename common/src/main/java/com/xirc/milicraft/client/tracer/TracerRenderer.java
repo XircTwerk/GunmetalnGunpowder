@@ -18,7 +18,7 @@ import org.joml.Matrix4f;
 
 @Environment(EnvType.CLIENT)
 public final class TracerRenderer {
-    private static final double LENGTH = 1.2;
+    private static final double LENGTH = 1.6;
     // AbstractArrow applies 0.99 drag per tick; match it or the tip outruns the bullet.
     private static final double DRAG = 0.99;
 
@@ -41,7 +41,7 @@ public final class TracerRenderer {
         RenderSystem.defaultBlendFunc();
         // Depth-tested so tracers don't draw through walls or the shooter in third person.
         RenderSystem.enableDepthTest();
-        RenderSystem.lineWidth(4.0f);
+        RenderSystem.lineWidth(5.5f);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
         Tesselator tesselator = Tesselator.getInstance();

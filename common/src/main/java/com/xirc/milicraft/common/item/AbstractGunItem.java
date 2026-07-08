@@ -499,7 +499,7 @@ public abstract class AbstractGunItem extends Item {
 
         BulletProjectile bullet = new BulletProjectile(world, user, caliber(), bulletLength(), stunTicks(), 0);
         bullet.setNoGravity(true);
-        bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 15, 0f);
+        bullet.shootFromRotation(user, user.getXRot(), user.getYRot(), 0f, 12, 0f);
         bullet.setTracerColor(tracerColor());
 
         // Spawn at the gun's effects bone if the client sent a plausible position,
