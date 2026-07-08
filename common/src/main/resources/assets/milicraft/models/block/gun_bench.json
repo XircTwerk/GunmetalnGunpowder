@@ -1,9 +1,0 @@
-{
-  "parent": "minecraft:block/orientable_with_bottom",
-  "textures": {
-    "top": "milicraft:block/gunbench_top",
-    "bottom": "milicraft:block/gunbench_bottom",
-    "side": "milicraft:block/gunbench_side",
-    "front": "milicraft:block/gunbench_front"
-  }
-}

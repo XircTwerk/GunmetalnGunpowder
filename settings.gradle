@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'milicraft'
+rootProject.name = 'militech'
 
 include 'common'
 include 'fabric'

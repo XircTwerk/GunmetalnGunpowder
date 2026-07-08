@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "id": "milicraft_datagen",
+  "id": "militech_datagen",
   "version": "${version}",
-  "name": "Milicraft Datagen",
-  "description": "Data generation for MiliCraft.",
+  "name": "Militech Datagen",
+  "description": "Data generation for Militech.",
   "license": "CC0-1.0",
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "com.xirc.milicraft.datagen.MilicraftDataGen"
+      "com.xirc.militech.datagen.MilitechDataGen"
     ]
   },
   "depends": {

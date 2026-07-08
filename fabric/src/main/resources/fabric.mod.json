@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "id": "milicraft",
+  "id": "militech",
   "version": "${version}",
-  "name": "MiliCraft",
-  "description": "MiliCraft.",
+  "name": "Militech",
+  "description": "Militech.",
   "authors": [
     "Me!"
   ],
   "contact": {},
   "license": "CC0-1.0",
-  "icon": "assets/milicraft/icon.png",
+  "icon": "assets/militech/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.xirc.milicraft.fabric.MilicraftFabric"
+      "com.xirc.militech.fabric.MilitechFabric"
     ],
     "client": [
-      "com.xirc.milicraft.fabric.client.MilicraftFabricClient"
+      "com.xirc.militech.fabric.client.MilitechFabricClient"
     ]
   },
   "mixins": [
-    "milicraft.mixins.json"
+    "militech.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
