@@ -11,7 +11,8 @@
     "client.GunEquipAnimMixin",
     "client.GunHudToastLayerMixin",
     "client.SwingSuppressionMixin",
-    "client.TracerLevelRendererMixin"
+    "client.TracerLevelRendererMixin",
+    "client.RenderTargetDepthMixin"
   ],
   "mixins": [
   ],

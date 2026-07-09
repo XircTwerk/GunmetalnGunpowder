@@ -1,6 +1,7 @@
 package com.xirc.militech.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.xirc.militech.client.shader.MilitechShaderManager;
 import com.xirc.militech.client.tracer.TracerRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
@@ -22,5 +23,6 @@ public class TracerLevelRendererMixin {
                                         boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer,
                                         LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         TracerRenderer.renderAll(poseStack, camera, partialTick);
+        MilitechShaderManager.getInstance().processAll(new PoseStack(), partialTick);
     }
 }

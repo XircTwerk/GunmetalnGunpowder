@@ -6,6 +6,8 @@ import com.xirc.militech.client.gui.GunBenchScreen;
 import com.xirc.militech.client.hud.GunHud;
 import com.xirc.militech.client.input.MilitechKeyMappings;
 import com.xirc.militech.client.renderer.item.MilitechItemRenderers;
+import com.xirc.militech.client.shader.ImpactShakeShaderEffect;
+import com.xirc.militech.client.shader.MilitechShaderManager;
 import com.xirc.militech.registry.MilitechMenus;
 import dev.architectury.registry.menu.MenuRegistry;
 
@@ -27,6 +29,8 @@ public final class MilitechClient {
         MilitechAnimations.init();
         GunDataSyncClient.init();
         GunHud.init();
+        MilitechShaderManager.getInstance().register(ImpactShakeShaderEffect.getInstance());
+        ShaderTriggerClient.init();
         MenuRegistry.registerScreenFactory(MilitechMenus.AMMO_BOX.get(), AmmoBoxScreen::new);
         MenuRegistry.registerScreenFactory(MilitechMenus.GUN_BENCH.get(), GunBenchScreen::new);
     }
