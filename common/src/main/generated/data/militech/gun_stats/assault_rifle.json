@@ -11,6 +11,6 @@
   "refire_cooldown_ticks": 2,
   "reload_cooldown_ticks": 29,
   "reload_duration_ticks": 29,
-  "spread": 0.015,
+  "spread": 0.05,
   "stun_ticks": 1
 }
