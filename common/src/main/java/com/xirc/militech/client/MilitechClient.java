@@ -1,6 +1,7 @@
 package com.xirc.militech.client;
 
 import com.xirc.militech.client.animation.MilitechAnimations;
+import com.xirc.militech.client.animation.MilitechMeleeAnimations;
 import com.xirc.militech.client.gui.AmmoBoxScreen;
 import com.xirc.militech.client.gui.GunBenchScreen;
 import com.xirc.militech.client.hud.GunHud;
@@ -27,6 +28,7 @@ public final class MilitechClient {
         }
         MilitechItemRenderers.register();
         MilitechAnimations.init();
+        MilitechMeleeAnimations.init();
         GunDataSyncClient.init();
         GunHud.init();
         MilitechShaderManager.getInstance().register(ImpactShakeShaderEffect.getInstance());

@@ -1,0 +1,50 @@
+{
+	"format_version": "1.21.110",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.knife",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "knife",
+					"pivot": [0, 3, 3],
+					"rotation": [0, -90, 0]
+				},
+				{
+					"name": "handle",
+					"parent": "knife",
+					"pivot": [-1.25, 1, 3],
+					"cubes": [
+						{"origin": [-2.25, 2, 2.5], "size": [2, 6, 1], "inflate": -0.025, "uv": [6, 0]},
+						{"origin": [-2.25, 2, 2.5], "size": [2, 1, 1], "inflate": 0.05, "uv": [0, 8]},
+						{"origin": [-2.40655, 1.69289, 2.5075], "size": [1.45, 1.45, 1], "pivot": [-1.95655, 1.69289, 3.5825], "rotation": [0, 0, 45], "uv": [12, 2]}
+					]
+				},
+				{
+					"name": "guard",
+					"parent": "handle",
+					"pivot": [-1.25, 1, 3],
+					"cubes": [
+						{"origin": [-2.20655, 7.79289, 2.2325], "size": [1.25, 1.25, 1.5], "inflate": -0.1, "pivot": [-1.95655, 7.79289, 3.2325], "rotation": [0, 0, 45], "uv": [0, 12]},
+						{"origin": [-3.25, 8, 2.25], "size": [4, 1, 1.5], "uv": [6, 7]}
+					]
+				},
+				{
+					"name": "blade",
+					"parent": "knife",
+					"pivot": [0, 3, 3],
+					"cubes": [
+						{"origin": [-2.25, 9, 2.5], "size": [2, 7, 1], "uv": [0, 0]},
+						{"origin": [-2.40655, 15.71789, 2.5075], "size": [1.45, 1.45, 1], "inflate": -0.025, "pivot": [-1.95655, 15.71789, 3.5825], "rotation": [0, 0, 45], "uv": [12, 0]}
+					]
+				}
+			]
+		}
+	]
+}

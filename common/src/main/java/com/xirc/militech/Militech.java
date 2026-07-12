@@ -11,6 +11,7 @@ import com.xirc.militech.registry.MilitechEntityTypes;
 import com.xirc.militech.registry.MilitechGameRules;
 import com.xirc.militech.registry.MilitechGuns;
 import com.xirc.militech.registry.MilitechItems;
+import com.xirc.militech.registry.MilitechMelee;
 import com.xirc.militech.registry.MilitechMenus;
 import com.xirc.militech.registry.MilitechPacketRegistry;
 import com.xirc.militech.registry.MilitechSoundRegistry;
@@ -29,6 +30,7 @@ public final class Militech {
         MilitechBlockEntities.init();
         MilitechItems.init();
         MilitechGuns.init();
+        MilitechMelee.init();
         MilitechEntityTypes.init();
         MilitechSoundRegistry.init();
         MilitechCreativeTabs.init();

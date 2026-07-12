@@ -72,6 +72,11 @@ public interface MilitechKeyMappings {
         send(MilitechPacketRegistry.GunInput.SHOOT_OFFHAND);
     }
 
+    static void sendMelee(MilitechPacketRegistry.MeleeInput input) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        NetworkManager.sendToServer(MilitechPacketRegistry.MELEE_INPUT, MilitechPacketRegistry.writeMelee(input, buf));
+    }
+
     static void send(MilitechPacketRegistry.GunInput input) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         Minecraft minecraft = Minecraft.getInstance();

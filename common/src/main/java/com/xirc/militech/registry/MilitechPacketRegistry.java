@@ -2,6 +2,7 @@ package com.xirc.militech.registry;
 
 import com.xirc.militech.Militech;
 import com.xirc.militech.common.item.AbstractGunItem;
+import com.xirc.militech.common.item.AbstractMeleeItem;
 import com.xirc.militech.common.system.GunAiming;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface MilitechPacketRegistry {
     ResourceLocation GUN_INPUT = Militech.id("gun_input");
+    ResourceLocation MELEE_INPUT = Militech.id("melee_input");
 
     static void init() {
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, GUN_INPUT, (buf, context) -> {
@@ -24,6 +26,19 @@ public interface MilitechPacketRegistry {
                 context.queue(() -> handleGunInput(player, input, muzzle));
             }
         });
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, MELEE_INPUT, (buf, context) -> {
+            MeleeInput input = buf.readEnum(MeleeInput.class);
+            if (context.getPlayer() instanceof ServerPlayer player) {
+                context.queue(() -> handleMeleeInput(player, input));
+            }
+        });
+    }
+
+    static void handleMeleeInput(ServerPlayer player, MeleeInput input) {
+        ItemStack mainHand = player.getMainHandItem();
+        if (mainHand.getItem() instanceof AbstractMeleeItem melee) {
+            melee.handleInput(player, mainHand, input);
+        }
     }
 
     static void handleGunInput(ServerPlayer player, GunInput input, @Nullable Vec3 muzzle) {
@@ -79,11 +94,22 @@ public interface MilitechPacketRegistry {
         return buf;
     }
 
+    static FriendlyByteBuf writeMelee(MeleeInput input, FriendlyByteBuf buf) {
+        buf.writeEnum(input);
+        return buf;
+    }
+
     enum GunInput {
         SHOOT,
         SHOOT_OFFHAND,
         RELOAD,
         AIM_START,
         AIM_STOP
+    }
+
+    enum MeleeInput {
+        PRIMARY,
+        SECONDARY,
+        TERTIARY
     }
 }

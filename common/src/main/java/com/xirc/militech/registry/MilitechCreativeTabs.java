@@ -21,6 +21,7 @@ public interface MilitechCreativeTabs {
                     .displayItems((displayContext, entries) -> {
                         entries.accept(MilitechGuns.BERETTA.get());
                         entries.accept(MilitechGuns.ASSAULT_RIFLE.get());
+                        entries.accept(MilitechMelee.KNIFE.get());
                         entries.accept(MilitechItems.GUN_BENCH.get());
                         entries.accept(MilitechItems.FRAME.get());
                         entries.accept(MilitechItems.BARREL.get());

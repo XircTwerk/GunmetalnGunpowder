@@ -10,6 +10,8 @@
     "client.GunInputMixin",
     "client.GunEquipAnimMixin",
     "client.GunHudToastLayerMixin",
+    "client.MeleeInputMixin",
+    "client.MeleeSwingSuppressionMixin",
     "client.SwingSuppressionMixin",
     "client.TracerLevelRendererMixin",
     "client.RenderTargetDepthMixin"
