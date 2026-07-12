@@ -33,7 +33,7 @@ void main() {
     // gl_Position is in clip space; NDC.z = gl_Position.z / gl_Position.w, so multiplying
     // the bias by w gives a constant NDC-space offset of ~0.0008 (back of the model).
     gl_Position.z += gl_Position.w * 0.0008;
-    vertexDistance = fog_distance(viewPosition.xyz, FogShape);
+    vertexDistance = fog_distance(ModelViewMat, displaced, FogShape);
     vertexColor = Color;
     texCoord0 = UV0;
 }
